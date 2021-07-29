@@ -1,6 +1,7 @@
 from functools import reduce
-from hashlib import sha256
-import json
+from collections import OrderedDict
+
+from hash_util import hash_block, hash_string_256
 
 MINING_REWARD = 10
 genesis_block = {
@@ -15,16 +16,11 @@ owner = 'Euan'
 participants = {'Euan'}
 
 
-
-def hash_block(block):
-    return sha256(json.dumps(block).encode()).hexdigest()
-
-
 def valid_proof(transactions, last_hash, proof):
     guess = (str(transactions) + str(last_hash) + str(proof)).encode()
-    guess_hash = sha256(guess).hexdigest()
+    guess_hash = hash_string_256(guess)
     print(guess_hash)
-    return guess_hash[:2] == '69'
+    return guess_hash[:2] == '00'
 
 
 def proof_of_work():
@@ -65,20 +61,12 @@ def verify_transactions():
 
 
 def add_transaction(recipient, sender=owner, amount=1.0):
-    """ Append a new value as well as the last clockchain to the blockchain.
-    
-    Arguments:
-        :sender: The sender of the coin. 
-
-        :recipient: The recipient of the coins.
-
-        :amount: The amount of coins sent with the transaction (default = 1.0)
-    """
     transaction = {
         'sender': sender, 
         'recipient': recipient, 
         'amount': amount
     }
+    transaction = OrderedDict([('sender', sender), ('recipient', recipient), ('amount', amount)])
     if verify_transaction(transaction):
         open_transactions.append(transaction)
         participants.add(sender)
@@ -91,11 +79,7 @@ def mine_block():
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
     proof = proof_of_work()
-    reward_transaction = {
-        'sender': 'MINING',
-        'recipient': owner,
-        'amount': MINING_REWARD
-    }
+    reward_transaction = OrderedDict([('sender', 'MINING'), ('recipient', owner), ('amount', MINING_REWARD)])
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
     block = {
