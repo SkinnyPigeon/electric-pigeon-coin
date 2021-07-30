@@ -5,6 +5,8 @@ import pickle
 from typing import IO
 
 from hash_util import hash_block, hash_string_256
+from block import Block
+
 
 MINING_REWARD = 10
 blockchain = []
@@ -25,17 +27,25 @@ def load_data():
             # blockchain = file_content['chain']
             # open_transactions = file_content['ot']
             blockchain = json.loads(file_content[0][:-1])
-            blockchain = [{
-                'previous_hash': block['previous_hash'], 
-                'index': block['index'], 
-                'proof': block['proof'], 
-                'transactions': [
+            # blockchain = [{
+            #     'previous_hash': block['previous_hash'], 
+            #     'index': block['index'], 
+            #     'proof': block['proof'], 
+            #     'transactions': [
+            #         OrderedDict([
+            #             ('sender', tx['sender']), 
+            #             ('recipient', tx['recipient']),
+            #             ('amount', tx['amount'])
+            #         ]) for tx in block['transactions']
+            #     ]} for block in blockchain]
+
+            blockchain = [Block(block['index'], block['previous_hash'], [
                     OrderedDict([
                         ('sender', tx['sender']), 
                         ('recipient', tx['recipient']),
                         ('amount', tx['amount'])
                     ]) for tx in block['transactions']
-                ]} for block in blockchain]
+                ], block['proof'], block['timestamp']) for block in blockchain]
 
             open_transactions = json.loads(file_content[1])
             open_transactions = [
@@ -44,13 +54,8 @@ def load_data():
                     ('recipient', tx['recipient']), 
                     ('amount', tx['amount'])
                 ]) for tx in open_transactions]
-    except IOError:
-        genesis_block = {
-        'previous_hash': '', 
-        'index': 0,
-        'transactions': [],
-        'proof': 100
-        }
+    except (IOError, IndexError):
+        genesis_block = Block(0, '', [], 100, 0)
         blockchain = [genesis_block]
         open_transactions = []
 
@@ -59,7 +64,8 @@ load_data()
 def save_data():
     try:
         with open('blockchain.txt', mode='w') as f:
-            f.write(json.dumps(blockchain))
+            saveable_chain = [block.__dict__ for block in blockchain]
+            f.write(json.dumps(saveable_chain))
             f.write('\n')
             f.write(json.dumps(open_transactions))
             # save_data = {
@@ -87,12 +93,12 @@ def proof_of_work():
 
 
 def get_balance(participant):
-    tx_sender = [[tx['amount'] for tx in block['transactions'] if tx['sender'] == participant] for block in blockchain]
+    tx_sender = [[tx['amount'] for tx in block.transactions if tx['sender'] == participant] for block in blockchain]
     open_tx_sender = [tx['amount'] for tx in open_transactions if tx['sender'] == participant]
     tx_sender.append(open_tx_sender)
     amount_sent = reduce(lambda tx_sum, tx_amt: tx_sum + sum(tx_amt) if len(tx_amt) > 0 else tx_sum + 0, tx_sender, 0)
 
-    tx_recipient = [[tx['amount'] for tx in block['transactions'] if tx['recipient'] == participant] for block in blockchain]
+    tx_recipient = [[tx['amount'] for tx in block.transactions if tx['recipient'] == participant] for block in blockchain]
     amount_recieved = reduce(lambda tx_sum, tx_amt: tx_sum + sum(tx_amt) if len(tx_amt) > 0 else tx_sum + 0, tx_recipient, 0)
     return amount_recieved - amount_sent
 
@@ -137,12 +143,7 @@ def mine_block():
     reward_transaction = OrderedDict([('sender', 'MINING'), ('recipient', owner), ('amount', MINING_REWARD)])
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
-    block = {
-        'previous_hash': hashed_block, 
-        'index': len(blockchain),
-        'transactions': copied_transactions,
-        'proof': proof
-    }
+    block = Block(len(blockchain), hashed_block, copied_transactions, proof)
     blockchain.append(block)
     return True
 
@@ -162,7 +163,7 @@ def get_user_choice():
 
 def print_blockchain_elements():
     for block in blockchain:
-            print(block)
+        print(block)
     else:
         print("-" * 20)
 
@@ -172,9 +173,9 @@ def verify_chain():
     for index, block in enumerate(blockchain):
         if index == 0:
             continue
-        if block['previous_hash'] != hash_block(blockchain[index - 1]):
+        if block.previous_hash != hash_block(blockchain[index - 1]):
             return False
-        if not valid_proof(block['transactions'][:-1], block['previous_hash'], block['proof']):
+        if not valid_proof(block.transactions[:-1], block.previous_hash, block.proof):
             print('Proof of work is invalid')
             return False
     return True
@@ -189,7 +190,6 @@ while waiting_for_input:
     print("3: Output the blockchain blocks")
     print("4: Output the participants")
     print("5: Check transaction validity")
-    print("h: Manipulate the chain!")
     print("q: Quit!")
 
     user_choice = get_user_choice()
@@ -218,15 +218,6 @@ while waiting_for_input:
             print('All transactions are valid')
         else:
             print('There are invalid transactions')
-
-
-    elif user_choice == 'h':
-        if len(blockchain) >= 1:
-            blockchain[0] = {
-        'previous_hash': '', 
-        'index': 0,
-        'transactions': [{'sender': 'Euan', 'recipient': 'Dave', 'amount': 100}]
-        }
 
     elif user_choice == 'q':
         waiting_for_input = False
