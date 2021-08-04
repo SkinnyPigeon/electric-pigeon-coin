@@ -1,13 +1,11 @@
 from functools import reduce
 import json
 import pickle
-from typing import IO
+
 from hash_util import hash_block
 from verification import Verification
-
 from block import Block
 from transaction import Transaction
-
 
 MINING_REWARD = 10
 

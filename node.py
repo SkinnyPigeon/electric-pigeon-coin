@@ -2,6 +2,7 @@ from blockchain import Blockchain
 from uuid import uuid4
 from verification import Verification
 
+
 class Node:
     def __init__(self):
         self.id = 'Euan'

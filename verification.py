@@ -1,6 +1,8 @@
 from hash_util import hash_block, hash_string_256
 
+
 class Verification:
+    
     @staticmethod
     def valid_proof(transactions, last_hash, proof):
         guess = (str([tx.to_ordered_dict() for tx in transactions]) +
