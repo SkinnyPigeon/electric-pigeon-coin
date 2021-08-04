@@ -2,8 +2,8 @@ from functools import reduce
 import json
 import pickle
 
-from hash_util import hash_block
-from verification import Verification
+from utility.hash_util import hash_block
+from utility.verification import Verification
 from block import Block
 from transaction import Transaction
 
