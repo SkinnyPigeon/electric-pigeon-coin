@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+from werkzeug.wrappers import response
 
 from wallet import Wallet
 from blockchain import Blockchain
@@ -14,6 +15,11 @@ blockchain = Blockchain(wallet.public_key)
 @app.route('/', methods=['GET'])
 def get_ui():
     return send_from_directory('ui', 'node.html')
+
+
+@app.route('/network', methods=['GET'])
+def get_node_ui():
+    return send_from_directory('ui', 'network.html')
 
 
 @app.route('/wallet', methods=['POST'])
@@ -34,6 +40,7 @@ def create_keys():
         }
         return jsonify(response), 500
 
+
 @app.route('/wallet', methods=['GET'])
 def load_keys():
     if wallet.load_keys():
@@ -50,6 +57,7 @@ def load_keys():
             'message': 'Loading the keys failed'
         }
         return jsonify(response), 500
+
 
 @app.route('/balance', methods=['GET'])
 def get_balance():
@@ -144,6 +152,52 @@ def get_chain():
     for dict_block in dict_chain:
         dict_block['transactions'] = [tx.__dict__ for tx in dict_block['transactions']]
     return jsonify(dict_chain), 200
+
+
+@app.route('/node', methods=['POST'])
+def add_node():
+    body = request.get_json()
+    if not body:
+        response = {
+            'message': 'No data attached'
+        }
+        return jsonify(response), 400
+    if 'node' not in body:
+        response = {
+            'message': 'No node data found'
+        }
+        return jsonify(response), 400
+    node = body['node']
+    blockchain.add_peer_node(node)
+    response = {
+        'message': 'Node added succesfully',
+        'all_nodes': blockchain.get_peer_nodes()
+    }
+    return jsonify(response), 201
+
+
+@app.route('/node/<node_url>', methods=['DELETE'])
+def remove_node(node_url):
+    if node_url == '' or node_url == None:
+        response = {
+            'message': 'No node found'
+        }
+        return jsonify(response), 400
+    blockchain.remove_peer_node(node_url)
+    response = {
+        'message': 'Node removed',
+        'all_nodes': blockchain.get_peer_nodes()
+    }
+    return jsonify(response), 200
+
+
+@app.route('/nodes', methods=['GET'])
+def get_nodes():
+    nodes = blockchain.get_peer_nodes()
+    response = {
+        'all_nodes': nodes
+    }
+    return jsonify(response), 200
 
 
 if __name__ == '__main__':

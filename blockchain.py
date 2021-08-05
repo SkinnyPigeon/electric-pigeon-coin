@@ -16,8 +16,9 @@ class Blockchain:
         genesis_block = Block(0, '', [], 100, 0)
         self.chain = [genesis_block]
         self.__open_transactions = []
-        self.load_data()
+        self.__peer_nodes = set()
         self.hosting_node = hosting_node_id
+        self.load_data()
 
 
     @property
@@ -48,10 +49,12 @@ class Blockchain:
                     Transaction(tx['sender'], tx['recipient'], tx['signature'], tx['amount']) for tx in block['transactions']
                 ], block['proof'], block['timestamp']) for block in blockchain]
 
-                open_transactions = json.loads(file_content[1])
+                open_transactions = json.loads(file_content[1][:-1])
                 self.__open_transactions = [
                     Transaction(tx['sender'], tx['recipient'], tx['signature'], tx['amount']) for tx in open_transactions
                 ]
+                peer_nodes = json.loads(file_content[2])
+                self.__peer_nodes = set(peer_nodes)
         except (IOError, IndexError):
             pass
  
@@ -76,6 +79,8 @@ class Blockchain:
                 f.write('\n')
                 saveable_tx = [tx.__dict__ for tx in self.__open_transactions]
                 f.write(json.dumps(saveable_tx))
+                f.write('\n')
+                f.write(json.dumps(list(self.__peer_nodes)))
                 # save_data = {
                 #     'chain': self.__chain,
                 #     'ot': self.__open_transactions
@@ -149,3 +154,17 @@ class Blockchain:
         self.__open_transactions = []
         self.save_data()
         return block
+
+
+    def add_peer_node(self,node):
+        self.__peer_nodes.add(node)
+        self.save_data()
+
+
+    def remove_peer_node(self, node):
+        self.__peer_nodes.discard(node)
+        self.save_data()
+
+    
+    def get_peer_nodes(self):
+        return list(self.__peer_nodes)
