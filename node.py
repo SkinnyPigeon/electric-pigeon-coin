@@ -75,6 +75,63 @@ def get_balance():
         return jsonify(response), 200
 
 
+@app.route('/broadcast-transaction', methods=['POST'])
+def broadcast_transaction():
+    body = request.get_json()
+    if not body:
+        response = {'message': 'No data found'}
+        return jsonify(response), 400
+    required = ['sender', 'recipient', 'amount', 'signature']
+    if not all(key in body for key in required):
+        response = {'message': 'Some data is missing'}
+        return jsonify(response), 400
+
+    success = blockchain.add_transaction(body['recipient'], body['sender'], body['signature'], body['amount'], is_receiving=True)
+    print(success)
+    print(body)
+    if success:
+        response = {
+            'message': 'Successfully added transaction',
+            'transaction': {
+                'sender': body['sender'],
+                'recipient': body['recipient'],
+                'amount': body['amount'],
+                'signature': body['signature']
+            },
+            'funds': blockchain.get_balance()
+        }
+        return jsonify(response), 201
+    else:
+        response = {
+            'message': 'Creating a transaction failed'
+        }
+        return jsonify(response), 500
+
+
+@app.route('/broadcast-block', methods=['POST'])
+def broadcast_block():
+    body = request.get_json()
+    if not body:
+        response = {'message': 'No data found'}
+        return jsonify(response), 400
+    if 'block' not in body:
+        response = {'message': 'Some data is missing'}
+        return jsonify(response), 400
+    block = body['block']
+    if block['index'] == blockchain.chain[-1].index + 1:
+        if blockchain.add_block(block):
+            response = {'message': 'Block added'}
+            return jsonify(response), 201
+        else:
+            response = {'message': 'Block invalid'}
+            return jsonify(response), 500
+    elif block['index'] > blockchain.chain[-1].index:
+        return 'Hey you'
+    else:
+        response = {'message': 'Blockchain seems to be shorted, block not added'}
+        return jsonify(response), 409
+
+
 @app.route('/transaction', methods=['POST'])
 def add_transaction():
     if wallet.public_key == None:
