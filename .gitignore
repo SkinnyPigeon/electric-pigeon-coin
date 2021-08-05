@@ -5,7 +5,13 @@ demo.txt
 functions.py
 **/__pycache__/
 blockchain.txt
+blockchain-5000.txt
+blockchain-5001.txt
+blockchain-5002.txt
 blockchain.p
 oop/
 playground/
 wallet.txt
+wallet-5000.txt
+wallet-5001.txt
+wallet-5002.txt
