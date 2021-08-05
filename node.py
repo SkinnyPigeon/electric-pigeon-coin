@@ -1,99 +1,27 @@
-from blockchain import Blockchain
-from uuid import uuid4
-from utility.verification import Verification
+from flask import Flask, jsonify
+from flask_cors import CORS
+
 from wallet import Wallet
+from blockchain import Blockchain
 
-class Node:
-    def __init__(self):
-        self.wallet = Wallet()
-        self.wallet.create_keys()
-        self.blockchain = Blockchain(self.wallet.public_key)
+app = Flask(__name__)
+CORS(app)
 
+wallet = Wallet()
+blockchain = Blockchain(wallet.public_key)
 
-    def get_transaction_value(self):
-        """ Returns the recipient and the amount. """
-        tx_recipient = input('Enter the recipient of the transaction: ')
-        tx_amount = float(input('Your transaction amount please: '))
-        return tx_recipient, tx_amount
+@app.route('/', methods=['GET'])
+def get_ui():
+    return 'This works!'
 
-
-    def get_user_choice(self):
-        """ Returns the input of the user (their menu selection) as a string """
-        user_input = input("Your choice: ")
-        return user_input
-
-
-    def print_blockchain_elements(self):
-        for block in self.blockchain.chain:
-            print(block)
-        else:
-            print("-" * 20)
-
-
-    def listen_for_input(self):
-        waiting_for_input = True
-
-        while waiting_for_input:
-            print("Please choose")
-            print("1: Add a new transaction value")
-            print("2: Mine a new block")
-            print("3: Output the blockchain blocks")
-            print("4: Check transaction validity")
-            print("5: Create wallet")
-            print("6: Load wallet")
-            print("7: Save keys")
-            print("q: Quit!")
-
-            user_choice = self.get_user_choice()
-
-            if user_choice == '1':
-                tx_data = self.get_transaction_value()
-                recipient, amount = tx_data
-                signature = self.wallet.sign_transaction(self.wallet.public_key, recipient, amount)
-                if self.blockchain.add_transaction(recipient, self.wallet.public_key, signature, amount=amount):
-                    print('Added transaction!')
-                else:
-                    print('Transaction failed!')
-
-            elif user_choice == '2':
-                if not self.blockchain.mine_block():
-                    print('Mining failed. Got no wallet?')
-            elif user_choice == '3':
-                self.print_blockchain_elements()
-
-            elif user_choice == '4':
-                if Verification.verify_transactions(self.blockchain.get_open_transactions(), self.blockchain.get_balance):
-                    print('All transactions are valid')
-                else:
-                    print('There are invalid transactions')
-
-            elif user_choice == '5':
-                self.wallet.create_keys()
-                self.blockchain = Blockchain(self.wallet.public_key)
-            
-            elif user_choice == '6':
-                self.wallet.load_keys()
-                self.blockchain = Blockchain(self.wallet.public_key)
-
-            elif user_choice == '7':
-                self.wallet.save_keys()
-
-            elif user_choice == 'q':
-                waiting_for_input = False
-
-            else:
-                print("Input was invalid, please pick a value from the list!")
-            if not Verification.verify_chain(self.blockchain.chain):
-                print("Invlalid blockchain")
-                self.print_blockchain_elements()
-                break
-            print('Balance of {}: {:6.2f}'.format(self.wallet.public_key, self.blockchain.get_balance()))
-        else:
-            print("User left!")
-
-        print("Done!")
+@app.route('/chain', methods=['GET'])
+def get_chain():
+    chain_snapshot = blockchain.chain
+    dict_chain = [block.__dict__.copy() for block in chain_snapshot]
+    for dict_block in dict_chain:
+        dict_block['transactions'] = [tx.__dict__ for tx in dict_block['transactions']]
+    return jsonify(dict_chain), 200
 
 
 if __name__ == '__main__':
-    node = Node()
-    node.listen_for_input()
+    app.run(host='0.0.0.0', port=5000)
