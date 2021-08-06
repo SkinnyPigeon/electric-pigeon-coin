@@ -1,3 +1,4 @@
+import json
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from werkzeug.wrappers import response
@@ -36,6 +37,16 @@ def create_keys():
             'message': 'Saving the keys failed'
         }
         return jsonify(response), 500
+
+
+@app.route('/keys', methods=['GET'])
+def create_browser_keys():
+    wallet.create_keys()
+    response = {
+        'publicKey': wallet.public_key,
+        'privateKey': wallet.private_key
+    }
+    return jsonify(response), 200
 
 
 @app.route('/wallet', methods=['GET'])
@@ -236,6 +247,24 @@ def get_chain():
     return jsonify(dict_chain), 200
 
 
+@app.route('/wallets', methods=['GET'])
+def get_wallets():
+    chain_snapshot = blockchain.chain
+    dict_chain = [block.__dict__.copy() for block in chain_snapshot]
+    for dict_block in dict_chain:
+        dict_block['transactions'] = [tx.__dict__ for tx in
+                                      dict_block['transactions']]
+    accounts = set()
+    for block in dict_chain:
+        for transaction in block['transactions']:
+            accounts.add(transaction['recipient'])
+    response = []
+    for account in accounts:
+        balance = blockchain.get_balance(account)
+        response.append({'account': account, 'balance': balance})
+    return jsonify(response), 200
+
+
 @app.route('/node', methods=['POST'])
 def add_node():
     body = request.get_json()
@@ -280,6 +309,12 @@ def get_nodes():
         'all_nodes': nodes
     }
     return jsonify(response), 200
+
+
+@app.route('/sell', methods=['POST'])
+def sell_coins():
+    body = request.get_json()
+    return {'message': 'Working on this'}
 
 
 if __name__ == '__main__':
