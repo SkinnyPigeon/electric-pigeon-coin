@@ -8,6 +8,7 @@ class Verification:
         guess = (str([tx.to_ordered_dict() for tx in transactions]) +
                  str(last_hash) + str(proof)).encode()
         guess_hash = hash_string_256(guess)
+        print(guess_hash)
         return guess_hash[:2] == '00'
 
     @classmethod
