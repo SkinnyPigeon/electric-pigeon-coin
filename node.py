@@ -195,6 +195,47 @@ def add_transaction():
         }
         return jsonify(response), 500
 
+@app.route('/buy', methods=['POST'])
+def buy_currency():
+    body = request.get_json()
+    if not body:
+        response = {
+            'message': 'No data found'
+        }
+        return jsonify(response), 400
+    required_fields = ['seller', 'buyer', 'amount']
+    if not all(field in body for field in required_fields):
+        response = {
+            'message': 'Required data is missing'
+        }
+        return jsonify(response), 400
+    recipient = body['buyer']
+    amount = body['amount']
+    seller = body['seller']
+    signature = wallet.sign_transaction_as_seller(wallet.public_key, recipient, amount)
+    print(f'Signature: {signature}')
+    success = blockchain.add_transaction(recipient,
+                                         wallet.public_key,
+                                         signature,
+                                         amount)
+    if success:
+        response = {
+            'message': 'Successfully added transaction',
+            'transaction': {
+                'sender': seller,
+                'recipient': recipient,
+                'amount': amount,
+                'signature': signature
+            },
+            'funds': blockchain.get_balance()
+        }
+        return jsonify(response), 201
+    else:
+        response = {
+            'message': 'Creating a transaction failed'
+        }
+        return jsonify(response), 500
+
 
 @app.route('/mine', methods=['POST'])
 def mine():

@@ -135,7 +135,9 @@ class Blockchain:
         # if self.public_key == None:
         #     return False
         transaction = Transaction(sender, recipient, signature, amount)
+        print(f'Transaction: {transaction}')
         if Verification.verify_transaction(transaction, self.get_balance):
+            print("LOOKS OK TO ME")
             self.__open_transactions.append(transaction)
             self.save_data()
             if not is_receiving:
