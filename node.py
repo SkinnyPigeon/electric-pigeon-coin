@@ -5,6 +5,7 @@ from werkzeug.wrappers import response
 
 from wallet import Wallet
 from blockchain import Blockchain
+from database.access import save_user_to_db
 
 app = Flask(__name__)
 CORS(app)
@@ -42,11 +43,17 @@ def create_keys():
 @app.route('/keys', methods=['GET'])
 def create_browser_keys():
     wallet.create_keys()
-    response = {
-        'publicKey': wallet.public_key,
-        'privateKey': wallet.private_key
-    }
-    return jsonify(response), 200
+    id = save_user_to_db(wallet.public_key, wallet.private_key)
+    if id:
+        response = {
+            'id': id,
+            'publicKey': wallet.public_key,
+            'privateKey': wallet.private_key
+        }
+        return jsonify(response), 200
+    else:
+        response = {'message': 'Keys not created'}
+        return jsonify(response), 500
 
 
 @app.route('/wallet', methods=['GET'])
