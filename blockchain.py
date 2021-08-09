@@ -132,11 +132,8 @@ class Blockchain:
 
     def add_transaction(self, recipient, sender, signature,
                         amount=1.0, is_receiving=False):
-        # if self.public_key == None:
-        #     return False
         transaction = Transaction(sender, recipient, signature, amount)
-        # print(f'Transaction: {transaction}')
-        if Verification.verify_transaction(transaction, self.get_balance) or True:
+        if Verification.verify_transaction(transaction, self.get_balance):
             print("LOOKS OK TO ME")
             self.__open_transactions.append(transaction)
             self.save_data()
@@ -160,10 +157,7 @@ class Blockchain:
 
     def mine_block(self):
         if self.public_key is None:
-            print("PUBLIC KEY IS NONE!")
             return None
-        # print(self.public_key)
-        
         last_block = self.__chain[-1]
         hashed_block = hash_block(last_block)
         proof = self.proof_of_work()
