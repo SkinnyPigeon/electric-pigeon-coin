@@ -12,9 +12,10 @@ engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5
 
 class BCWallet(Base):
     __tablename__ = 'wallets'
-    id = Column(BigInteger)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     public_key=Column(String, primary_key=True)
     private_key=Column(String)
+    port = Column(Integer)
 
 try:
     Base.metadata.create_all(engine)

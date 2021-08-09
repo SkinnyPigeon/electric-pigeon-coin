@@ -4,7 +4,7 @@ from Crypto.Hash import SHA256
 import Crypto.Random
 import binascii
 
-from database.access import load_user_from_db, save_user_to_db
+from database.access import load_user_from_db, load_node_from_db, save_user_to_db
 
 
 class Wallet:
@@ -16,7 +16,7 @@ class Wallet:
 
     def create_keys(self):
         private_key, public_key = self.generate_keys()
-        id = save_user_to_db(public_key, private_key)
+        id = save_user_to_db(public_key, private_key, self.node_id)
         self.private_key = private_key
         self.public_key = public_key
         self.id = id
@@ -38,16 +38,24 @@ class Wallet:
                 return False
 
     def load_keys(self):
+        # try:
+        #     with open('wallet-{}.txt'.format(self.node_id), mode='r') as f:
+        #         keys = f.readlines()
+        #         public_key = keys[0][:-1]
+        #         private_key = keys[1]
+        #         self.public_key = public_key
+        #         self.private_key = private_key
+        #         return True
+        # except (IOError, IndexError):
+        #     print('Loading wallet failed')
+        #     return False
         try:
-            with open('wallet-{}.txt'.format(self.node_id), mode='r') as f:
-                keys = f.readlines()
-                public_key = keys[0][:-1]
-                private_key = keys[1]
-                self.public_key = public_key
-                self.private_key = private_key
-                return True
-        except (IOError, IndexError):
-            print('Loading wallet failed')
+            id, public_key, private_key, port = load_node_from_db(self.node_id)
+            self.id = id
+            self.public_key = public_key
+            self.private_key = private_key
+            return True
+        except:
             return False
 
     def generate_keys(self):
@@ -66,7 +74,7 @@ class Wallet:
         return binascii.hexlify(signature).decode('ascii')
 
     def sign_transaction_as_seller(self, sender, recipient, amount, id):
-        private_key = load_user_from_db(id)
+        private_key = load_user_from_db(sender)[2]
         signer = PKCS1_v1_5.new(RSA.importKey
                                 (binascii.unhexlify(private_key)))
         h = SHA256.new((str(sender) + str(recipient) +

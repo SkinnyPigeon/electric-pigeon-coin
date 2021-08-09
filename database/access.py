@@ -7,7 +7,7 @@ PGPASSWORD=os.getenv("PGPASSWORD")
 from sqlalchemy import MetaData, create_engine, insert, select
 from sqlalchemy.ext.automap import automap_base
 
-def save_user_to_db(public_key, private_key):
+def save_user_to_db(public_key, private_key, port):
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
     metadata.reflect(engine)
@@ -18,16 +18,17 @@ def save_user_to_db(public_key, private_key):
     try:
         stmt = (
             insert(wallets).
-            values(public_key=public_key, private_key=private_key) 
+            values(public_key=public_key, private_key=private_key, port=port) 
         )
         result = engine.execute(stmt)
         engine.dispose()
+
         return result.inserted_primary_key[0]
     except:
         engine.dispose()
         return False
 
-def load_user_from_db(id):
+def load_user_from_db(public_key):
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
     metadata.reflect(engine)
@@ -36,7 +37,7 @@ def load_user_from_db(id):
     try:
         wallets = metadata.tables['wallets']
 
-        stmt = (select (wallets).where(wallets.c.id == id))
+        stmt = (select (wallets).where(wallets.c.public_key == public_key))
         result = engine.execute(stmt).fetchone()
         engine.dispose()
         return result
@@ -45,7 +46,7 @@ def load_user_from_db(id):
         return False
 
 
-def load_user_from_db(id):
+def load_node_from_db(port):
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
     metadata.reflect(engine)
@@ -54,7 +55,7 @@ def load_user_from_db(id):
     try:
         wallets = metadata.tables['wallets']
 
-        stmt = (select (wallets).where(wallets.c.id == id))
+        stmt = (select (wallets).where(wallets.c.port == port))
         result = engine.execute(stmt).fetchone()
         engine.dispose()
         return result

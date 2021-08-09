@@ -43,7 +43,7 @@ def create_keys():
 @app.route('/keys', methods=['GET'])
 def create_browser_keys():
     private_key, public_key = wallet.create_keys_for_users()
-    id = save_user_to_db(public_key, private_key)
+    id = save_user_to_db(public_key, private_key, 0)
     if id:
         response = {
             'id': id,
