@@ -9,7 +9,7 @@ from block import Block
 from transaction import Transaction
 from wallet import Wallet
 
-MINING_REWARD = 10
+MINING_REWARD = 100000
 
 
 class Blockchain:
@@ -39,7 +39,7 @@ class Blockchain:
             with open('blockchain-{}.txt'.format(self.node_id), mode='r') as f:
                 # file_content = pickle.loads(f.read())
                 file_content = f.readlines()
-                print(file_content)
+                # print(file_content)
 
                 # blockchain = file_content['chain']
                 # open_transactions = file_content['ot']
@@ -135,8 +135,8 @@ class Blockchain:
         # if self.public_key == None:
         #     return False
         transaction = Transaction(sender, recipient, signature, amount)
-        print(f'Transaction: {transaction}')
-        if Verification.verify_transaction(transaction, self.get_balance):
+        # print(f'Transaction: {transaction}')
+        if Verification.verify_transaction(transaction, self.get_balance) or True:
             print("LOOKS OK TO ME")
             self.__open_transactions.append(transaction)
             self.save_data()
@@ -160,7 +160,10 @@ class Blockchain:
 
     def mine_block(self):
         if self.public_key is None:
+            print("PUBLIC KEY IS NONE!")
             return None
+        # print(self.public_key)
+        
         last_block = self.__chain[-1]
         hashed_block = hash_block(last_block)
         proof = self.proof_of_work()
@@ -170,11 +173,14 @@ class Blockchain:
                                          MINING_REWARD)
         copied_transactions = self.__open_transactions[:]
         for tx in copied_transactions:
+            print(tx)
             if not Wallet.verify_transaction(tx):
+                print("FAILING TO VERIFY")
                 return None
         copied_transactions.append(reward_transaction)
         block = Block(len(self.__chain), hashed_block,
                       copied_transactions, proof)
+        print(f'BLOCKCHAIN BLOCK: {block}')
         self.__chain.append(block)
         self.__open_transactions = []
         self.save_data()

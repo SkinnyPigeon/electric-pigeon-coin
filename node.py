@@ -42,13 +42,13 @@ def create_keys():
 
 @app.route('/keys', methods=['GET'])
 def create_browser_keys():
-    wallet.create_keys()
-    id = save_user_to_db(wallet.public_key, wallet.private_key)
+    private_key, public_key = wallet.create_keys_for_users()
+    id = save_user_to_db(public_key, private_key)
     if id:
         response = {
             'id': id,
-            'publicKey': wallet.public_key,
-            'privateKey': wallet.private_key
+            'publicKey': public_key,
+            'privateKey': private_key
         }
         return jsonify(response), 200
     else:
@@ -107,8 +107,8 @@ def broadcast_transaction():
                                          body['signature'],
                                          body['amount'],
                                          is_receiving=True)
-    print(success)
-    print(body)
+    # print(success)
+    # print(body)
     if success:
         response = {
             'message': 'Successfully added transaction',
@@ -219,10 +219,10 @@ def buy_currency():
     recipient = body['buyer']
     amount = body['amount']
     seller = body['seller']
-    signature = wallet.sign_transaction_as_seller(wallet.public_key, recipient, amount)
-    print(f'Signature: {signature}')
+    signature = wallet.sign_transaction_as_seller(seller, recipient, amount)
+    # print(f'Signature: {signature}')
     success = blockchain.add_transaction(recipient,
-                                         wallet.public_key,
+                                         seller,
                                          signature,
                                          amount)
     if success:
@@ -250,6 +250,7 @@ def mine():
         response = {'message': 'Resolve conflicts first, block not added'}
         return jsonify(response), 409
     block = blockchain.mine_block()
+    print(f'BLOCK: {block}')
     if block is not None:
         dict_block = block.__dict__.copy()
         dict_block['transactions'] = [tx.__dict__ for tx in
