@@ -210,7 +210,7 @@ def buy_currency():
             'message': 'No data found'
         }
         return jsonify(response), 400
-    required_fields = ['seller', 'buyer', 'amount']
+    required_fields = ['seller', 'buyer', 'amount', 'id']
     if not all(field in body for field in required_fields):
         response = {
             'message': 'Required data is missing'
@@ -219,7 +219,8 @@ def buy_currency():
     recipient = body['buyer']
     amount = body['amount']
     seller = body['seller']
-    signature = wallet.sign_transaction_as_seller(seller, recipient, amount)
+    id = body['id']
+    signature = wallet.sign_transaction_as_seller(seller, recipient, amount, id)
     # print(f'Signature: {signature}')
     success = blockchain.add_transaction(recipient,
                                          seller,
