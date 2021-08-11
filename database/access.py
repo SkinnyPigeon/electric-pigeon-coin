@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv() 
 PGUSER=os.getenv("PGUSER")
 PGPASSWORD=os.getenv("PGPASSWORD")
-DATABASE_URL = os.getenv['DATABASE_URL']
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 from sqlalchemy import MetaData, create_engine, insert, select
 from sqlalchemy.ext.automap import automap_base

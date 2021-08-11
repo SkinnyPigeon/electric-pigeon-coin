@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv() 
 PGUSER=os.getenv("PGUSER")
 PGPASSWORD=os.getenv("PGPASSWORD")
-DATABASE_URL = os.getenv['DATABASE_URL']
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 
 from sqlalchemy import Column, String, BigInteger, Integer, create_engine
