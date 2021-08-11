@@ -3,10 +3,10 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from werkzeug.wrappers import response
 
-from wallet import Wallet
-from blockchain import Blockchain
-from database.access import save_user_to_db
-from database.setup import initialise_db
+from .wallet import Wallet
+from .blockchain import Blockchain
+from .database.access import save_user_to_db
+from .database.setup import initialise_db
 
 app = Flask(__name__)
 CORS(app)
