@@ -6,6 +6,7 @@ from werkzeug.wrappers import response
 from wallet import Wallet
 from blockchain import Blockchain
 from database.access import save_user_to_db
+from database.setup import initialise_db
 
 app = Flask(__name__)
 CORS(app)
@@ -14,6 +15,11 @@ CORS(app)
 @app.route('/', methods=['GET'])
 def get_ui():
     return send_from_directory('ui', 'node.html')
+
+@app.route('/initialise_db', methods=['GET'])
+def initialise():
+    message, status = initialise_db()
+    return jsonify(message), status
 
 
 @app.route('/network', methods=['GET'])
