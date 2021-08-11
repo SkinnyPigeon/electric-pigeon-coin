@@ -23,10 +23,10 @@ def initialise_db():
         public_key=Column(String, primary_key=True)
         private_key=Column(String)
         port = Column(Integer)
-    try:
-        Base.metadata.create_all(engine)
-        engine.dispose()
-        return {'message': 'Database initialised'}, 200
-    except:
-        engine.dispose()
-        return {'message': 'Database initialisation failed'}, 500
+    # try:
+    Base.metadata.create_all(engine)
+    engine.dispose()
+    return {'message': 'Database initialised'}, 200
+    # except:
+    #     engine.dispose()
+    #     return {'message': 'Database initialisation failed'}, 500
