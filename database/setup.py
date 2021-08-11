@@ -1,16 +1,18 @@
 import os
 from dotenv import load_dotenv
 load_dotenv() 
-PGUSER=os.getenv("PGUSER")
-PGPASSWORD=os.getenv("PGPASSWORD")
-DATABASE_URL = os.getenv('DATABASE_URL')
-
+# PGUSER=os.getenv("PGUSER")
+# PGPASSWORD=os.getenv("PGPASSWORD")
+# DATABASE_URL = os.getenv('DATABASE_URL')
+PGUSER=os.environ["PGUSER"]
+PGPASSWORD=os.environ["PGPASSWORD"]
+DATABASE=os.environ["DATABASE"]
 
 from sqlalchemy import Column, String, BigInteger, Integer, create_engine
 from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
-engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@{DATABASE_URL}')
+engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@{DATABASE}')
 
 class BCWallet(Base):
     __tablename__ = 'wallets'

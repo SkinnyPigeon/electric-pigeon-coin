@@ -2,15 +2,19 @@ from json import load
 import os
 from dotenv import load_dotenv
 load_dotenv() 
-PGUSER=os.getenv("PGUSER")
-PGPASSWORD=os.getenv("PGPASSWORD")
-DATABASE_URL = os.getenv('DATABASE_URL')
+# PGUSER=os.getenv("PGUSER")
+# PGPASSWORD=os.getenv("PGPASSWORD")
+# DATABASE_URL = os.getenv('DATABASE_URL')
+
+PGUSER=os.environ["PGUSER"]
+PGPASSWORD=os.environ["PGPASSWORD"]
+DATABASE=os.environ["DATABASE"]
 
 from sqlalchemy import MetaData, create_engine, insert, select
 from sqlalchemy.ext.automap import automap_base
 
 def save_user_to_db(public_key, private_key, port):
-    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@{DATABASE_URL}')
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@{DATABASE}')
     metadata = MetaData(bind=engine)
     metadata.reflect(engine)
     Base = automap_base(metadata=metadata)
