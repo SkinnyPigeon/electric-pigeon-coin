@@ -1,6 +1,6 @@
 version: '3'
 services:
-  data_lake:
+  blockchain:
     container_name: blockchain
     restart: always
     build: .
@@ -12,5 +12,5 @@ services:
       - blockchain
 
 networks:
-  serums:
+  blockchain:
     external: true

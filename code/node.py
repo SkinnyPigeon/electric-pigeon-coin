@@ -8,6 +8,10 @@ from blockchain import Blockchain
 from database.access import save_user_to_db
 from database.setup import initialise_db
 
+port = 5000
+wallet = Wallet(port)
+blockchain = Blockchain(wallet.public_key, port)
+
 app = Flask(__name__)
 CORS(app)
 
@@ -391,11 +395,9 @@ def sell_coins():
 
 
 if __name__ == '__main__':
-    from argparse import ArgumentParser
-    parser = ArgumentParser()
-    parser.add_argument('-p', '--port', type=int, default=5000)
-    args = parser.parse_args()
-    port = args.port
-    wallet = Wallet(port)
-    blockchain = Blockchain(wallet.public_key, port)
+    # from argparse import ArgumentParser
+    # parser = ArgumentParser()
+    # parser.add_argument('-p', '--port', type=int, default=5000)
+    # args = parser.parse_args()
+    # port = args.port
     app.run(host='0.0.0.0', port=port)
