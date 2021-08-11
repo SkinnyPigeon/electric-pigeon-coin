@@ -1,3 +1,4 @@
+from json import load
 import os
 from dotenv import load_dotenv
 load_dotenv() 
@@ -54,8 +55,9 @@ def load_node_from_db(port):
     Base.prepare()
     try:
         wallets = metadata.tables['wallets']
-
+        # print(wallets)
         stmt = (select (wallets).where(wallets.c.port == port))
+        # print(stmt)
         result = engine.execute(stmt).fetchone()
         engine.dispose()
         return result

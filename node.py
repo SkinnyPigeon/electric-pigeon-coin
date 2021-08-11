@@ -90,6 +90,23 @@ def get_balance():
         }
         return jsonify(response), 200
 
+@app.route('/balance', methods=['POST'])
+def get_balance_for_user():
+    body = request.get_json()
+    balance = blockchain.get_balance(body['public_key'])
+    if balance is None:
+        response = {
+            'message': 'Loading balanace failed',
+            'wallet_set_up': wallet.public_key is not None
+        }
+        return jsonify(response), 500
+    else:
+        response = {
+            'message': 'Fetched balance successfully',
+            'balance': balance
+        }
+        return jsonify(response), 200
+
 
 @app.route('/broadcast-transaction', methods=['POST'])
 def broadcast_transaction():
