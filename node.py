@@ -25,6 +25,16 @@ def initialise():
     message, status = initialise_db()
     return jsonify(message), status
 
+@app.route('/reset_blockchain', methods=['GET'])
+def reset_blockchain():
+    try:
+        blockchain.clear_data()
+        response = {'message': 'Blockchain reset'}
+        return response, 200
+    except:
+        response = {'message': 'Blockchain not reset'}
+        return response, 500
+
 
 @app.route('/network', methods=['GET'])
 def get_node_ui():
@@ -395,11 +405,4 @@ def sell_coins():
 
 
 if __name__ == '__main__':
-    # from argparse import ArgumentParser
-    # parser = ArgumentParser()
-    # parser.add_argument('-p', '--port', type=int, default=5000)
-    # args = parser.parse_args()
-    # port = args.port
-    # wallet = Wallet(port)
-    # blockchain = Blockchain(wallet.public_key, port)
     app.run(host='0.0.0.0', port=port)

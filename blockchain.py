@@ -90,6 +90,15 @@ class Blockchain:
         except IOError:
             print('Saving failed!')
 
+    
+    def clear_data(self):
+        try:
+            with open('blockchain-{}.txt'.format(self.node_id), mode='r') as f:
+                f.write('')
+        except (IOError, IndexError):
+            pass
+
+
     def proof_of_work(self):
         last_block = self.__chain[-1]
         last_hash = hash_block(last_block)
