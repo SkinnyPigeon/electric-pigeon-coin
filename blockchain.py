@@ -2,6 +2,7 @@ from functools import reduce
 import json
 import pickle
 import requests
+import os
 
 from utility.hash_util import hash_block
 from utility.verification import Verification
@@ -93,8 +94,7 @@ class Blockchain:
     
     def clear_data(self):
         try:
-            with open('blockchain-{}.txt'.format(self.node_id), mode='r') as f:
-                f.write('')
+            os.remove(f'blockchain-{self.node_id}.txt')
         except (IOError, IndexError):
             pass
 
