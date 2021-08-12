@@ -1,1 +1,1 @@
-web: gunicorn --workers=3 node:app
+web: gunicorn --workers=1 --chdir=/code/ node:app

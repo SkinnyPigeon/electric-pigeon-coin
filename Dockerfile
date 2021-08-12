@@ -1,4 +1,4 @@
-FROM skinnypigeon/blockchain
+FROM skinnypigeon/serums-start
 EXPOSE 5000:5000
 COPY /code /code/
 COPY /code/config/config.json /etc/config.json

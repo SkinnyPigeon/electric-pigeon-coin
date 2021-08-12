@@ -6,7 +6,6 @@ from werkzeug.wrappers import response
 from wallet import Wallet
 from blockchain import Blockchain
 from database.access import save_user_to_db
-from database.setup import initialise_db
 
 port = 5000
 wallet = Wallet(port)
@@ -15,15 +14,9 @@ blockchain = Blockchain(wallet.public_key, port)
 app = Flask(__name__)
 CORS(app)
 
-
 @app.route('/', methods=['GET'])
 def get_ui():
     return send_from_directory('ui', 'node.html')
-
-@app.route('/initialise_db', methods=['GET'])
-def initialise():
-    message, status = initialise_db()
-    return jsonify(message), status
 
 
 @app.route('/network', methods=['GET'])
@@ -400,6 +393,7 @@ if __name__ == '__main__':
     # parser.add_argument('-p', '--port', type=int, default=5000)
     # args = parser.parse_args()
     # port = args.port
-    # wallet = Wallet(port)
-    # blockchain = Blockchain(wallet.public_key, port)
+    port = 5000
+    wallet = Wallet(port)
+    blockchain = Blockchain(wallet.public_key, port)
     app.run(host='0.0.0.0', port=port)
