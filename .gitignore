@@ -6,9 +6,12 @@ functions.py
 **/__pycache__/
 blockchain.txt
 blockchain-5000.txt
+blockchain-5000-backup.txt
 blockchain-5001.txt
+blockchain-5001-backup.txt
 blockchain-5002.txt
 blockchain-5003.txt
+test.py
 blockchain.p
 wallet.txt
 wallet-5000.txt

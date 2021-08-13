@@ -11,7 +11,6 @@ from database.setup import initialise_db
 port = 5000
 wallet = Wallet(port)
 blockchain = Blockchain(wallet.public_key, port)
-
 app = Flask(__name__)
 CORS(app)
 
@@ -405,4 +404,5 @@ def sell_coins():
 
 
 if __name__ == '__main__':
+
     app.run(host='0.0.0.0', port=port)

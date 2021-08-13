@@ -4,6 +4,19 @@ import pickle
 import requests
 import os
 
+from dotenv import load_dotenv
+import boto3
+from smart_open import open
+
+load_dotenv() 
+# aws_access_key_id=os.getenv('AWSAccessKeyId')
+# aws_secret_key=os.getenv('AWSSecretKey')
+
+
+aws_access_key_id=os.environ['AWSAccessKeyId']
+aws_secret_key=os.environ['AWSSecretKey']
+
+
 from utility.hash_util import hash_block
 from utility.verification import Verification
 from block import Block
@@ -36,12 +49,35 @@ class Blockchain:
         return self.__open_transactions[:]
 
     def load_data(self):
+        session = boto3.Session(
+            aws_access_key_id=os.environ['AWSAccessKeyId'],
+            aws_secret_access_key=os.environ['AWSSecretKey'],
+        )
+        url = 's3://electric-pigeon-coin-blockchain/blockchain-5000.txt'
+        try:
+            with open(url, 'r', transport_params={'client': session.client('s3')}) as f:
+                    file_content = f.read().splitlines()
+                    blockchain = json.loads(file_content[0])
+                    self.chain = [Block(block['index'], block['previous_hash'], [
+                        Transaction(tx['sender'], tx['recipient'], tx['signature'],
+                                    tx['amount']) for tx in block['transactions']
+                    ], block['proof'], block['timestamp']) for block in blockchain]
+
+                    open_transactions = json.loads(file_content[1])
+                    self.__open_transactions = [
+                        Transaction(tx['sender'], tx['recipient'], tx['signature'],
+                                    tx['amount']) for tx in open_transactions
+                    ]
+                    peer_nodes = json.loads(file_content[2])
+                    self.__peer_nodes = set(peer_nodes)
+        except (IOError, IndexError):
+            pass
+
+    def load_data_old(self):
         try:
             with open('blockchain-{}.txt'.format(self.node_id), mode='r') as f:
                 # file_content = pickle.loads(f.read())
                 file_content = f.readlines()
-                # print(file_content)
-
                 # blockchain = file_content['chain']
                 # open_transactions = file_content['ot']
                 blockchain = json.loads(file_content[0][:-1])
@@ -60,7 +96,7 @@ class Blockchain:
         except (IOError, IndexError):
             pass
 
-    def save_data(self):
+    def save_data_old(self):
         try:
             with open('blockchain-{}.txt'.format(self.node_id), mode='w') as f:
                 saveable_chain = [
@@ -92,7 +128,7 @@ class Blockchain:
             print('Saving failed!')
 
     
-    def clear_data(self):
+    def clear_data_old(self):
         try:
             os.remove(f'blockchain-{self.node_id}.txt')
         except (IOError, IndexError):
