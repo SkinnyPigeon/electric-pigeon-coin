@@ -1,7 +1,7 @@
 import json
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from werkzeug.wrappers import response
+from flask_restplus import Api, Resource, fields
 
 from wallet import Wallet
 from blockchain import Blockchain
@@ -12,17 +12,27 @@ port = 5000
 wallet = Wallet(port)
 blockchain = Blockchain(wallet.public_key, port)
 app = Flask(__name__)
+app.config['ERROR_404_HELP'] = False
 CORS(app)
+api = Api(
+    app,
+    version='0.3.0',
+    title='Electric Pigeon Coin',
+    description='The hottest new meme coin on the block 🚀'
+)
+
+backend_space = api.namespace('backend', description='Setting up the initial configuration/restting an existing session')
 
 
-@app.route('/', methods=['GET'])
+@app.route('/frontend', methods=['GET'])
 def get_ui():
     return send_from_directory('ui', 'node.html')
 
-@app.route('/initialise_db', methods=['GET'])
-def initialise():
-    message, status = initialise_db()
-    return jsonify(message), status
+@backend_space.route('/initialise_db')
+class InitialiseDB(Resource):
+    def get(self):
+        message, status = initialise_db()
+        return jsonify(message), status
 
 @app.route('/reset_blockchain', methods=['GET'])
 def reset_blockchain():
@@ -399,25 +409,25 @@ def get_nodes():
 
 @app.route('/add_like', methods=['GET'])
 def add_like_to_database():
-    response = add_like()
-    return response
+    response, status = add_like()
+    return jsonify(response), status
 
 @app.route('/get_counts', methods=['POST'])
 def get_counts():
     body = request.get_json()
-    response = table_counts(body['table'])
-    return response
+    response, status = table_counts(body['table'])
+    return jsonify(response), status
 
 @app.route('/get_value', methods=['GET'])
 def get_coin_value():
-    response = get_value()
-    return response
+    response, status = get_value()
+    return jsonify(response), status
 
 @app.route('/set_value', methods=['POST'])
 def set_coin_value():
     body = request.get_json()
-    response = set_value(body['new_value'])
-    return response
+    response, status = set_value(body['new_value'])
+    return jsonify(response), status
 
 
 @app.route('/sell', methods=['POST'])
