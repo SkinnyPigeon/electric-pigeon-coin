@@ -5,7 +5,7 @@ from werkzeug.wrappers import response
 
 from wallet import Wallet
 from blockchain import Blockchain
-from database.access import save_user_to_db, add_like, table_counts
+from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value
 from database.setup import initialise_db
 
 port = 5000
@@ -398,14 +398,25 @@ def get_nodes():
 
 
 @app.route('/add_like', methods=['GET'])
-def add_like():
+def add_like_to_database():
     response = add_like()
     return response
 
 @app.route('/get_counts', methods=['POST'])
 def get_counts():
     body = request.get_json()
-    response = table_counts(body['to_count'])
+    response = table_counts(body['table'])
+    return response
+
+@app.route('/get_value', methods=['GET'])
+def get_coin_value():
+    response = get_value()
+    return response
+
+@app.route('/set_value', methods=['POST'])
+def set_coin_value():
+    body = request.get_json()
+    response = set_value(body['new_value'])
     return response
 
 
@@ -413,6 +424,7 @@ def get_counts():
 def sell_coins():
     body = request.get_json()
     return {'message': 'Working on this'}
+
 
 
 if __name__ == '__main__':

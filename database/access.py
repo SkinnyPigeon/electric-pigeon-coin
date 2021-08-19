@@ -8,7 +8,7 @@ load_dotenv()
 PGUSER=os.environ["PGUSER"]
 PGPASSWORD=os.environ["PGPASSWORD"]
 
-from sqlalchemy import MetaData, create_engine, insert, select
+from sqlalchemy import MetaData, create_engine, exc, insert, select, update
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm.session import sessionmaker
 
@@ -102,3 +102,36 @@ def table_counts(table):
     except:
         engine.dispose()
         return {"message": "User count unavailable"}, 500
+
+
+def get_value():
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        value = metadata.tables['value']
+        stmt = (select(value).where(value.c.id == 1))
+        result = engine.execute(stmt).fetchone()
+        engine.dispose()
+        return {"message": result[1]}, 200
+    except:
+        engine.dispose()
+        return {"message": "Unable to acertain value"}, 500
+
+def set_value(new_value):
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        value = metadata.tables['value']
+        stmt = (update(value).where(value.c.id == 1).values(value = new_value))
+        engine.execute(stmt)
+        engine.dispose()
+        return {"message": "Value successfully updated"}, 200
+    except:
+        engine.dispose()
+        return {"message": "Failed to update the value"}, 500

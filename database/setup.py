@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from sqlalchemy.sql.sqltypes import NUMERIC
 load_dotenv() 
 # PGUSER=os.getenv("PGUSER")
 # PGPASSWORD=os.getenv("PGPASSWORD")
@@ -11,7 +12,7 @@ PGPASSWORD=os.environ["PGPASSWORD"]
 # DATABASE=os.environ["DATABASE"]
 # DATABASE_URL=os.environ["DATABASE_URL"]
 
-from sqlalchemy import Column, String, BigInteger, Integer, create_engine
+from sqlalchemy import Column, String, BigInteger, Integer, create_engine, NUMERIC
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -29,6 +30,10 @@ class BCLikes(Base):
     __tablename__ = 'likes'
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
+class BCValue(Base):
+    __tablename__ = 'value'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    value = Column(NUMERIC(20, 10))
 
 Base.metadata.create_all(engine)
 engine.dispose()
