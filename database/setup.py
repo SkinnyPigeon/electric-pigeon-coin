@@ -35,8 +35,15 @@ class BCValue(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     value = Column(NUMERIC(20, 10))
 
-Base.metadata.create_all(engine)
-engine.dispose()
+# Base.metadata.create_all(engine)
+# engine.dispose()
 
 def initialise_db():
-    return {'message': 'Database initialised'}, 200
+    try:
+        Base.metadata.create_all(engine)
+        engine.dispose()
+        return {"message": "Database initialised"}, 200
+
+    except:
+        engine.dispose()
+        return {"message": "Failed to initialise database"}, 500

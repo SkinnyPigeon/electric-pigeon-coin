@@ -22,32 +22,40 @@ api = Api(
 )
 
 backend_space = api.namespace('backend', description='Setting up the initial configuration/restting an existing session')
-
+wallet_keys = api.namespace('wallet_and_keys', description='Loading wallet and keys')
 
 @app.route('/frontend', methods=['GET'])
 def get_ui():
     return send_from_directory('ui', 'node.html')
 
-@backend_space.route('/initialise_db')
-class InitialiseDB(Resource):
-    def get(self):
-        message, status = initialise_db()
-        return jsonify(message), status
-
-@app.route('/reset_blockchain', methods=['GET'])
-def reset_blockchain():
-    try:
-        blockchain.clear_data()
-        response = {'message': 'Blockchain reset'}
-        return response, 200
-    except:
-        response = {'message': 'Blockchain not reset'}
-        return response, 500
-
 
 @app.route('/network', methods=['GET'])
 def get_node_ui():
     return send_from_directory('ui', 'network.html')
+
+
+@backend_space.route('/initialise_db')
+class InitialiseDB(Resource):
+    def get(self):
+        message, status = initialise_db()
+        response = jsonify(message)
+        response.status_code = status
+        return response
+
+
+@backend_space.route('/reset_blockchain')
+class ResetBlockchain(Resource):
+    def get(self):
+        try:
+            # blockchain.clear_data_old
+            response = jsonify({"message": "Blockchain reset"})
+            response.status_code = 200
+            return response
+        except:
+            response = jsonify({'message': 'Blockchain not reset'})
+            response.statud_code = 500
+            return response
+             
 
 
 @app.route('/wallet', methods=['POST'])
@@ -69,20 +77,25 @@ def create_keys():
         return jsonify(response), 500
 
 
-@app.route('/keys', methods=['GET'])
-def create_browser_keys():
-    private_key, public_key = wallet.create_keys_for_users()
-    id = save_user_to_db(public_key, private_key, 0)
-    if id:
-        response = {
-            'id': id,
-            'publicKey': public_key,
-            'privateKey': private_key
-        }
-        return jsonify(response), 200
-    else:
-        response = {'message': 'Keys not created'}
-        return jsonify(response), 500
+@wallet_keys.route('/keys')
+class Keys(Resource):
+# @app.route('/keys', methods=['GET'])
+    def get(self):
+        private_key, public_key = wallet.create_keys_for_users()
+        id = save_user_to_db(public_key, private_key, 0)
+        if id:
+            response = {
+                'id': id,
+                'publicKey': public_key,
+                'privateKey': private_key
+            }
+            response = jsonify(response)
+            response.status_code = 200
+            return  response
+        else:
+            response = jsonify({'message': 'Keys not created'})
+            response.status_code = 500
+            return response
 
 
 @app.route('/wallet', methods=['GET'])
@@ -101,6 +114,7 @@ def load_keys():
             'message': 'Loading the keys failed'
         }
         return jsonify(response), 500
+        
 
 
 @app.route('/balance', methods=['GET'])
