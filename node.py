@@ -5,7 +5,7 @@ from werkzeug.wrappers import response
 
 from wallet import Wallet
 from blockchain import Blockchain
-from database.access import save_user_to_db
+from database.access import save_user_to_db, add_like, table_counts
 from database.setup import initialise_db
 
 port = 5000
@@ -395,6 +395,18 @@ def get_nodes():
         'all_nodes': nodes
     }
     return jsonify(response), 200
+
+
+@app.route('/add_like', methods=['GET'])
+def add_like():
+    response = add_like()
+    return response
+
+@app.route('/get_counts', methods=['POST'])
+def get_counts():
+    body = request.get_json()
+    response = table_counts(body['to_count'])
+    return response
 
 
 @app.route('/sell', methods=['POST'])

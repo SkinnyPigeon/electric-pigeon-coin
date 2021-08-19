@@ -78,7 +78,7 @@ class Blockchain:
             aws_access_key_id=os.environ['AWSAccessKeyId'],
             aws_secret_access_key=os.environ['AWSSecretKey'],
         )
-        url = 's3://electric-pigeon-coin-blockchain/misc.txt'
+        url = 's3://electric-pigeon-coin-blockchain/blockchain-5000.txt'
         with open(url, 'w', transport_params={'client': session.client('s3')}) as f:
                 saveable_chain = [
                     block.__dict__ for block in [
