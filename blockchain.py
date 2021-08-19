@@ -73,28 +73,34 @@ class Blockchain:
         except (IOError, IndexError):
             pass
 
-    def load_data_old(self):
-        try:
-            with open('blockchain-{}.txt'.format(self.node_id), mode='r') as f:
-                # file_content = pickle.loads(f.read())
-                file_content = f.readlines()
-                # blockchain = file_content['chain']
-                # open_transactions = file_content['ot']
-                blockchain = json.loads(file_content[0][:-1])
-                self.chain = [Block(block['index'], block['previous_hash'], [
-                    Transaction(tx['sender'], tx['recipient'], tx['signature'],
-                                tx['amount']) for tx in block['transactions']
-                ], block['proof'], block['timestamp']) for block in blockchain]
-
-                open_transactions = json.loads(file_content[1][:-1])
-                self.__open_transactions = [
-                    Transaction(tx['sender'], tx['recipient'], tx['signature'],
-                                tx['amount']) for tx in open_transactions
+    def save_data(self):
+        session = boto3.Session(
+            aws_access_key_id=os.environ['AWSAccessKeyId'],
+            aws_secret_access_key=os.environ['AWSSecretKey'],
+        )
+        url = 's3://electric-pigeon-coin-blockchain/misc.txt'
+        with open(url, 'w', transport_params={'client': session.client('s3')}) as f:
+                saveable_chain = [
+                    block.__dict__ for block in [
+                        Block(
+                            block_element.index,
+                            block_element.previous_hash,
+                            [
+                                tx.__dict__ for tx in
+                                block_element.transactions
+                            ],
+                            block_element.proof,
+                            block_element.timestamp
+                        ) for block_element in self.__chain
+                    ]
                 ]
-                peer_nodes = json.loads(file_content[2])
-                self.__peer_nodes = set(peer_nodes)
-        except (IOError, IndexError):
-            pass
+                f.write(json.dumps(saveable_chain))
+                f.write('\n')
+                saveable_tx = [tx.__dict__ for tx in self.__open_transactions]
+                f.write(json.dumps(saveable_tx))
+                f.write('\n')
+                f.write(json.dumps(list(self.__peer_nodes)))
+
 
     def save_data_old(self):
         try:

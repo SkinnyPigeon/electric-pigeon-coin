@@ -25,6 +25,10 @@ class BCWallet(Base):
     private_key=Column(String)
     port = Column(Integer)
 
+class BCLikes(Base):
+    __tablename__ = 'likes'
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
 
 Base.metadata.create_all(engine)
 engine.dispose()
