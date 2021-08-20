@@ -240,7 +240,7 @@
                     // Send Http request to create a new wallet (and return keys)
                     var vm = this;
                     this.walletLoading = true
-                    axios.post('/wallet')
+                    axios.get('/new-wallet')
                         .then(function (response) {
                             vm.error = null;
                             vm.success = 'Created Wallet! Public Key: ' + response.data.public_key + ', Private Key: ' + response.data.private_key;
@@ -262,7 +262,7 @@
                     // Send Http request to load an existing wallet (from a file on the server)
                     var vm = this;
                     this.walletLoading = true
-                    axios.get('/wallet')
+                    axios.get('/load-wallet')
                         .then(function (response) {
                             vm.error = null;
                             vm.success = 'Created Wallet! Public Key: ' + response.data.public_key + ', Private Key: ' + response.data.private_key;

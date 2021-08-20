@@ -19,7 +19,9 @@ api = Api(
     app,
     version='0.3.0',
     title='Electric Pigeon Coin',
-    description='The hottest new meme coin on the block 🚀'
+    description="""The hottest new meme coin on the block 🚀
+    To begin, you must first either create a set of keys for this node via the POST request at /nodes/new-wallet or load existing keys for the node from the GET request at /nodes/load-wallet
+    """
 )
 
 # Builtin UI endpoints
@@ -145,10 +147,10 @@ class GetWallets(Resource):
 
 node_space = api.namespace('nodes', description="Node wallet management and Mining")
 
-@node_space.route('/wallet')
-class NodeWallet(Resource):
-    def post(self):
-        """Generate new keys for the node. `CAUTION!!! Your node may lose it's current balance`"""
+@node_space.route('/new-wallet')
+class NewNodeWallet(Resource):
+    def get(self):
+        """Generate new keys for the node. `CAUTION!!! If you aleady have a node you may lose it's balance`"""
         wallet.create_keys()
         if wallet.save_keys():
             global blockchain
@@ -166,6 +168,8 @@ class NodeWallet(Resource):
             response.status_code = 500
             return response
 
+@node_space.route('/load-wallet')
+class LoadNodeWallet(Resource):
     def get(self):
         """Load the keys for the current node"""
         if wallet.load_keys():
@@ -214,7 +218,7 @@ class Mine(Resource):
         """Validates all open transactions and adds them to a new block"""
         if wallet.public_key is None:
             try:
-                response = requests.get('http://localhost:5000/nodes/wallet')
+                response = requests.get('http://localhost:5000/nodes/load-wallet')
             except: 
                 pass
         if blockchain.resolve_conflicts:
