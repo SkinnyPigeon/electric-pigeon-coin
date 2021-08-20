@@ -372,8 +372,14 @@ class Buy(Resource):
             return response
 
 
-@transaction_space.route('/transaction')
+node_to_recipient_fields = api.model('Allows the node to tranfer funds to another wallet', {
+    'recipient': fields.String(required=True, description='The public key of the wallet to send funds to', example="30819f300d06092a864886f70d010101050003818d0030818902818100a3807aad16a2fbfcd743ec77e121a299823fbcf159cfe56af886cc576f34f386c34b2fd05dd629f7bfd3a725249dc0778dbad45995d580e9f513fdcc0351613caf24ce374e8f9781871fe3d784e9e024f78685015756a23b71e39a070f94493142588526dc6143a29f64e3aa90a519a640bbc5806786b248e434cad23e8a8d0f0203010001"),
+    'amount': fields.Float(required=True, description='The amount of coins to transfer, can be float type', example=201.7263)
+})
+
+@transaction_space.route('/node-transfer')
 class AddTransaction(Resource):
+    @api.expect(node_to_recipient_fields)
     def post(self):
         """Allow's the node to transfer funds to another wallet"""
         if wallet.public_key is None:

@@ -235,7 +235,6 @@ class Blockchain:
             converted_block['transactions'] = [tx.__dict__ for tx in
                                                converted_block['transactions']]
             try:
-                print(f"CONVERTED BLOCK: {converted_block}")
                 response = requests.post(url, json={'block': converted_block})
                 if response.status_code == 400 or response.status_code == 500:
                     print('Transaction declined, needs resolving')
