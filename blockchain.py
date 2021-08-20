@@ -190,7 +190,7 @@ class Blockchain:
             self.save_data()
             if not is_receiving:
                 for node in self.__peer_nodes:
-                    url = 'http://{}/broadcast-transaction'.format(node)
+                    url = 'http://{}/broadcast/transaction'.format(node)
                     try:
                         response = requests.post(url,
                                                  json={'sender': sender,
@@ -230,7 +230,7 @@ class Blockchain:
         self.__open_transactions = []
         self.save_data()
         for node in self.__peer_nodes:
-            url = 'http://{}/broadcast-block'.format(node)
+            url = 'http://{}/broadcast/block'.format(node)
             converted_block = block.__dict__.copy()
             converted_block['transactions'] = [tx.__dict__ for tx in
                                                converted_block['transactions']]
