@@ -2,6 +2,7 @@ import json
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_restplus import Api, Resource, fields
+import requests
 
 from wallet import Wallet
 from blockchain import Blockchain
@@ -45,6 +46,11 @@ transaction_fields = api.model('Make a transaction', {
 })
 
 
+# Mine
+
+mine_space = api.namespace('nodes', description="Mine a block to confirm transactions")
+
+
 @app.route('/frontend', methods=['GET'])
 def get_ui():
     return send_from_directory('ui', 'node.html')
@@ -78,26 +84,6 @@ class ResetBlockchain(Resource):
             return response
              
 
-
-@app.route('/wallet', methods=['POST'])
-def create_keys():
-    wallet.create_keys()
-    if wallet.save_keys():
-        global blockchain
-        blockchain = Blockchain(wallet.public_key, port)
-        response = {
-            'public_key': wallet.public_key,
-            'private_key': wallet.private_key,
-            'funds': blockchain.get_balance()
-        }
-        return jsonify(response), 201
-    else:
-        response = {
-            'message': 'Saving the keys failed'
-        }
-        return jsonify(response), 500
-
-
 @wallet_keys.route('/keys')
 class Keys(Resource):
     def get(self):
@@ -116,6 +102,25 @@ class Keys(Resource):
             response = jsonify({'message': 'Keys not created'})
             response.status_code = 500
             return response
+
+
+@app.route('/wallet', methods=['POST'])
+def create_keys():
+    wallet.create_keys()
+    if wallet.save_keys():
+        global blockchain
+        blockchain = Blockchain(wallet.public_key, port)
+        response = {
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key,
+            'funds': blockchain.get_balance()
+        }
+        return jsonify(response), 201
+    else:
+        response = {
+            'message': 'Saving the keys failed'
+        }
+        return jsonify(response), 500
 
 
 @app.route('/wallet', methods=['GET'])
@@ -329,29 +334,40 @@ class Buy(Resource):
             return response
 
 
-@app.route('/mine', methods=['POST'])
-def mine():
-    if blockchain.resolve_conflicts:
-        response = {'message': 'Resolve conflicts first, block not added'}
-        return jsonify(response), 409
-    block = blockchain.mine_block()
-    print(f'BLOCK: {block}')
-    if block is not None:
-        dict_block = block.__dict__.copy()
-        dict_block['transactions'] = [tx.__dict__ for tx in
-                                      dict_block['transactions']]
-        response = {
-            'message': 'Block added successfully',
-            'block': dict_block,
-            'funds': blockchain.get_balance()
-        }
-        return response, 200
-    else:
-        response = {
-            'message': 'Adding a block failed',
-            'wallet_set_up': wallet.public_key is not None
-        }
-        return jsonify(response), 500
+@mine_space.route('/mine')
+class Mine(Resource):
+    def get(self):
+        if wallet.public_key is None:
+            try:
+                response = requests.get('http://localhost:5000/wallet')
+            except: 
+                pass
+        if blockchain.resolve_conflicts:
+            response = jsonify({'message': 'Resolve conflicts first, block not added'})
+            response.status_code = 409
+            return response
+        block = blockchain.mine_block()
+        print(f'BLOCK: {block}')
+        if block is not None:
+            dict_block = block.__dict__.copy()
+            dict_block['transactions'] = [tx.__dict__ for tx in
+                                        dict_block['transactions']]
+            message = {
+                'message': 'Block added successfully',
+                'block': dict_block,
+                'funds': blockchain.get_balance()
+            }
+            response = jsonify(message)
+            response.status_code = 200
+            return response
+        else:
+            message = {
+                'message': 'Adding a block failed',
+                'wallet_set_up': wallet.public_key is not None
+            }
+            response = jsonify(message)
+            response.status_code = 500
+            return response
 
 
 @app.route('/resolve-conflicts', methods=['POST'])

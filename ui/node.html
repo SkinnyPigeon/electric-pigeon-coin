@@ -303,7 +303,7 @@
                 },
                 onMine: function () {
                     var vm = this
-                    axios.post('/mine')
+                    axios.post('/nodes/mine')
                         .then(function(response) {
                             vm.error = null;
                             vm.success = response.data.message;
