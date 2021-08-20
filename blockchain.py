@@ -225,7 +225,7 @@ class Blockchain:
         copied_transactions.append(reward_transaction)
         block = Block(len(self.__chain), hashed_block,
                       copied_transactions, proof)
-        print(f'BLOCKCHAIN BLOCK: {block}')
+        # print(f'BLOCKCHAIN BLOCK: {block}')
         self.__chain.append(block)
         self.__open_transactions = []
         self.save_data()
@@ -235,6 +235,7 @@ class Blockchain:
             converted_block['transactions'] = [tx.__dict__ for tx in
                                                converted_block['transactions']]
             try:
+                print(f"CONVERTED BLOCK: {converted_block}")
                 response = requests.post(url, json={'block': converted_block})
                 if response.status_code == 400 or response.status_code == 500:
                     print('Transaction declined, needs resolving')
