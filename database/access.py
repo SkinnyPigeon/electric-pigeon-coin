@@ -111,11 +111,12 @@ def get_value():
     Base = automap_base(metadata=metadata)
     Base.prepare()
     try:
-        value = metadata.tables['value']
-        stmt = (select(value).where(value.c.id == 1))
+        value_table = metadata.tables['value']
+        stmt = (select(value_table).where(value_table.c.id == 1))
         result = engine.execute(stmt).fetchone()
         engine.dispose()
-        return {"message": result[1]}, 200
+        value = float(result[1])
+        return {"message": value}, 200
     except:
         engine.dispose()
         return {"message": "Unable to acertain value"}, 500

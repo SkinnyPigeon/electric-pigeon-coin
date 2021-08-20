@@ -85,7 +85,7 @@
                 onAddNode: function() {
                     // Add node as peer node to local node server
                     const vm = this;
-                    axios.post('/node', {
+                    axios.post('/nodes/node', {
                         node: this.newNodeUrl
                     })
                     .then(function(response) {
@@ -101,7 +101,7 @@
                 onLoadNodes: function() {
                     // Load all peer nodes of the local node server
                     const vm = this;
-                    axios.get('/nodes')
+                    axios.get('/nodes/nodes')
                         .then(function(response) {
                             vm.success = 'Fetched nodes successfully';
                             vm.error = null;
@@ -115,7 +115,7 @@
                 onRemoveNode: function(nodeUrl) {
                     // Remove node as a peer node
                     const vm = this;
-                    axios.delete('/node/' + nodeUrl)
+                    axios.delete('/nodes/node/' + nodeUrl)
                         .then(function(response) {
                             vm.success = 'Deleted node successfully';
                             vm.error = null;

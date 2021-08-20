@@ -1,4 +1,3 @@
-import json
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_restplus import Api, Resource, fields
@@ -244,15 +243,70 @@ class Mine(Resource):
             response.status_code = 500
             return response
 
+@node_space.route('/resolve-conflicts')
+class ResolveConflicts(Resource):
+    def post(self):
+        """Resolve conflicts on the blockchain"""
+        replaced = blockchain.resolve()
+        if replaced:
+            response = jsonify({'message': 'Chain was replaced'})
+        else:
+            response = jsonify({'message': 'Local chain kept'})
+        response.status_code = 200
+        return response
 
-@app.route('/resolve-conflicts', methods=['POST'])
-def resolve_conflicts():
-    replaced = blockchain.resolve()
-    if replaced:
-        response = {'message': 'Chain was replaced'}
-    else:
-        response = {'message': 'Local chain kept'}
-    return jsonify(response), 200
+@node_space.route('/node')
+class AddNodePeer(Resource):
+    def post(self):
+        """Add new peer node to transmit to and receive from"""
+        body = request.get_json()
+        if not body:
+            response = jsonify({'message': 'No data attached'})
+            response.statud_code = 400
+            return response
+        if 'node' not in body:
+            response = jsonify({'message': 'No node data found'})
+            response.status_code = 400
+            return response
+        node = body['node']
+        blockchain.add_peer_node(node)
+        message = {
+            'message': 'Node added succesfully',
+            'all_nodes': blockchain.get_peer_nodes()
+        }
+        response = jsonify(message)
+        response.status_code = 201
+        return response
+
+
+
+@node_space.route('/node/<node_url>')
+class DeletePeerNode(Resource):
+    def delete(self, node_url):
+        """Remove peer node"""
+        if node_url == '' or node_url is None:
+            response = jsonify({'message': 'No node found'})
+            response.status_code = 400
+            return response
+        blockchain.remove_peer_node(node_url)
+        message = {
+            'message': 'Node removed',
+            'all_nodes': blockchain.get_peer_nodes()
+        }
+        response = jsonify(message)
+        response.status_code = 200
+        return response
+
+
+@node_space.route('/nodes')
+class AllPeerNodes(Resource):
+    def get(self):
+        """Get list of all available peer nodes"""
+        nodes = blockchain.get_peer_nodes()
+        response = jsonify({'all_nodes': nodes})
+        response.status_code = 200
+        return response
+
 
 # Transactions
 
@@ -269,6 +323,7 @@ transaction_fields = api.model('Make a transaction', {
 class Buy(Resource):
     @api.expect(transaction_fields)
     def post(self):
+        """Allows user to buy coins from available wallets"""
         body = request.get_json()
         if not body:
             response = jsonify({'message': 'No data found in request body'})
@@ -352,12 +407,31 @@ class AddTransaction(Resource):
             response.status_code = 500
             return response
 
+@transaction_space.route('/open-transactions')
+class OpenTransactions(Resource):
+    def get(self):
+        """Get list of open transactions on network"""
+        transactions = blockchain.get_open_transactions()
+        dict_transactions = [tx.__dict__ for tx in transactions]
+        response = jsonify(dict_transactions)
+        response.status_code = 200
+        return response
+
+
+@app.route('/sell', methods=['POST'])
+def sell_coins():
+    body = request.get_json()
+    return {'message': 'Working on this'}
+
+
+# Broadcast transactions and blocks
 
 broadcast_space = api.namespace('broadcast', description="Broadcast transactions and blocks")
 
 @broadcast_space.route('/transaction')
 class BroadcastTransaction(Resource):
     def post(self):
+        """Sends open transactions to peer nodes on the network"""
         body = request.get_json()
         if not body:
             response = jsonify({'message': 'No data found'})
@@ -397,6 +471,7 @@ class BroadcastTransaction(Resource):
 @broadcast_space.route('/block')
 class BroadcastBlock(Resource):
     def post(self):
+        """Sends newly mined block to peer nodes on the network"""
         body = request.get_json()
         if not body:
             response = jsonify({'message': 'No data found'})
@@ -427,103 +502,74 @@ class BroadcastBlock(Resource):
             return response
 
 
+# Blockchain
+
+blockchain_space = api.namespace('blockchain', description="View the current state of the blockchain")
+
+@blockchain_space.route('/chain')
+class GetBlockchain(Resource):
+    def get(self):
+        """Get snapshot of current blockchain"""
+        chain_snapshot = blockchain.chain
+        dict_chain = [block.__dict__.copy() for block in chain_snapshot]
+        for dict_block in dict_chain:
+            dict_block['transactions'] = [tx.__dict__ for tx in
+                                        dict_block['transactions']]
+        response = jsonify(dict_chain)
+        response.status_code = 200
+        return response
 
 
-@app.route('/transactions', methods=['GET'])
-def get_open_transactions():
-    transactions = blockchain.get_open_transactions()
-    dict_transactions = [tx.__dict__ for tx in transactions]
-    return jsonify(dict_transactions), 200
+# Likes and counts
 
+like_space = api.namespace('stats', description="Handles the interactions with the blockchain")
 
-@app.route('/chain', methods=['GET'])
-def get_chain():
-    chain_snapshot = blockchain.chain
-    dict_chain = [block.__dict__.copy() for block in chain_snapshot]
-    for dict_block in dict_chain:
-        dict_block['transactions'] = [tx.__dict__ for tx in
-                                      dict_block['transactions']]
-    return jsonify(dict_chain), 200
+count_fields = api.model('Get counts of the likes and number of users', {
+    'table': fields.String(required=True, description='The table to get the counts from', example="likes")
+})
+value_fields = api.model('Set the current value of the coin', {
+    'new_value': fields.Float(required=True, description='The amount to set the value of the coin to', example=5.412)
+})
 
+@like_space.route('/add_like')
+class AddLike(Resource):
+    def get(self):
+        """Add like to the blockchain stats. Might help the value 🤑"""
+        message, status = add_like()
+        response = jsonify(message)
+        response.status_code = status
+        return response
 
+@like_space.route('/get_counts')
+class GetCounts(Resource):
+    @api.expect(count_fields)
+    def post(self):
+        """Get counts of the likes and number of users"""
+        body = request.get_json()
+        message, status = table_counts(body['table'])
+        response = jsonify(message)
+        response.status_code = status
+        return response
 
+@like_space.route('/get_value')
+class GetValue(Resource):
+    def get(self):
+        """Get current value of the coin"""
+        message, status = get_value()
+        response = jsonify(message)
+        response.status_code = status
+        return response
 
-@app.route('/node', methods=['POST'])
-def add_node():
-    body = request.get_json()
-    if not body:
-        response = {
-            'message': 'No data attached'
-        }
-        return jsonify(response), 400
-    if 'node' not in body:
-        response = {
-            'message': 'No node data found'
-        }
-        return jsonify(response), 400
-    node = body['node']
-    blockchain.add_peer_node(node)
-    response = {
-        'message': 'Node added succesfully',
-        'all_nodes': blockchain.get_peer_nodes()
-    }
-    return jsonify(response), 201
-
-
-@app.route('/node/<node_url>', methods=['DELETE'])
-def remove_node(node_url):
-    if node_url == '' or node_url is None:
-        response = {
-            'message': 'No node found'
-        }
-        return jsonify(response), 400
-    blockchain.remove_peer_node(node_url)
-    response = {
-        'message': 'Node removed',
-        'all_nodes': blockchain.get_peer_nodes()
-    }
-    return jsonify(response), 200
-
-
-@app.route('/nodes', methods=['GET'])
-def get_nodes():
-    nodes = blockchain.get_peer_nodes()
-    response = {
-        'all_nodes': nodes
-    }
-    return jsonify(response), 200
-
-
-@app.route('/add_like', methods=['GET'])
-def add_like_to_database():
-    response, status = add_like()
-    return jsonify(response), status
-
-@app.route('/get_counts', methods=['POST'])
-def get_counts():
-    body = request.get_json()
-    response, status = table_counts(body['table'])
-    return jsonify(response), status
-
-@app.route('/get_value', methods=['GET'])
-def get_coin_value():
-    response, status = get_value()
-    return jsonify(response), status
-
-@app.route('/set_value', methods=['POST'])
-def set_coin_value():
-    body = request.get_json()
-    response, status = set_value(body['new_value'])
-    return jsonify(response), status
-
-
-@app.route('/sell', methods=['POST'])
-def sell_coins():
-    body = request.get_json()
-    return {'message': 'Working on this'}
-
-
+@like_space.route('/set_value')
+class SetValue(Resource):
+    @api.expect(value_fields)
+    def post(self):
+        """Set the current value of the coin 💰. Could be used for currency manipulation I suppose..."""
+        body = request.get_json()
+        message, status = set_value(body['new_value'])
+        response = jsonify(message)
+        response.status_code = status
+        return response
 
 if __name__ == '__main__':
-
     app.run(host='0.0.0.0', port=port)
