@@ -136,3 +136,40 @@ def set_value(new_value):
     except:
         engine.dispose()
         return {"message": "Failed to update the value"}, 500
+
+def get_status():
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        status_table = metadata.tables['status']
+        stmt = (select(status_table).where(status_table.c.id == 1))
+        result = engine.execute(stmt).fetchone()
+        engine.dispose()
+        status = result[1]
+        return {'status': status}, 200
+    except:
+        engine.dispose()
+        return {'message': 'Failed to fetch the status'}, 500
+
+def set_status(new_status):
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        status_table = metadata.tables['status']
+        stmt = (update(status_table).where(status_table.c.id == 1).values(status = new_status))
+        engine.execute(stmt)
+        engine.dispose()
+        if new_status == 1:
+            status = 'ready'
+        else:
+            status = 'offline'
+        return {'message': f'exchange is {status}'}, 200
+    except:
+        engine.dispose()
+        return {'message': "Failed to update the value"}, 500

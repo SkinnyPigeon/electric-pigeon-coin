@@ -35,8 +35,10 @@ class BCValue(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     value = Column(NUMERIC(20, 10))
 
-# Base.metadata.create_all(engine)
-# engine.dispose()
+class BCStatus(Base):
+    __tablename__ = "status"
+    id = Column(Integer, primary_key=True)
+    status = Column(Integer)
 
 def initialise_db():
     try:

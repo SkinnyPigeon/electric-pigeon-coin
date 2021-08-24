@@ -1,12 +1,12 @@
 from os import remove
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, json, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_restplus import Api, Resource, fields
 import requests
 
 from wallet import Wallet
 from blockchain import Blockchain
-from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value
+from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value, get_status, set_status
 from database.setup import initialise_db
 
 port = 5000
@@ -552,9 +552,9 @@ class GetBlockchain(Resource):
         return response
 
 
-# Likes and counts
+# Stats
 
-like_space = api.namespace('stats', description="Handles the interactions with the blockchain")
+stats_space = api.namespace('stats', description="Handles the interactions with the blockchain")
 
 count_fields = api.model('Get counts of the likes and number of users', {
     'table': fields.String(required=True, description='The table to get the counts from', example="likes")
@@ -563,7 +563,7 @@ value_fields = api.model('Set the current value of the coin', {
     'new_value': fields.Float(required=True, description='The amount to set the value of the coin to', example=5.412)
 })
 
-@like_space.route('/add_like')
+@stats_space.route('/add_like')
 class AddLike(Resource):
     def get(self):
         """Add like to the blockchain stats. Might help the value 🤑"""
@@ -572,7 +572,7 @@ class AddLike(Resource):
         response.status_code = status
         return response
 
-@like_space.route('/get_counts')
+@stats_space.route('/get_counts')
 class GetCounts(Resource):
     @api.expect(count_fields)
     def post(self):
@@ -583,7 +583,7 @@ class GetCounts(Resource):
         response.status_code = status
         return response
 
-@like_space.route('/get_value')
+@stats_space.route('/get_value')
 class GetValue(Resource):
     def get(self):
         """Get current value of the coin"""
@@ -592,7 +592,7 @@ class GetValue(Resource):
         response.status_code = status
         return response
 
-@like_space.route('/set_value')
+@stats_space.route('/set_value')
 class SetValue(Resource):
     @api.expect(value_fields)
     def post(self):
@@ -602,6 +602,31 @@ class SetValue(Resource):
         response = jsonify(message)
         response.status_code = status
         return response
+
+@stats_space.route('/status')
+class GetStatus(Resource):
+    def get(self):
+        """Get the current status of the exchange"""
+        message, status_code = get_status()
+        response = jsonify(message)
+        response.staus_code = status_code
+        return response
+
+status_fields = api.model('Set the current status of the exchange', {
+    'status': fields.Integer(required=True, description='The binary on or off for the exchange', enum=[0, 1], example=1)
+})
+
+@stats_space.route('/set_status')
+class SetStatus(Resource):
+    @api.expect(status_fields)
+    def post(self):
+        """Set the status of the exchange (online or offline)"""
+        body = request.get_json()
+        message, status_code = set_status(body['status'])
+        response = jsonify(message)
+        response.status_code = status_code
+        return response
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=port)
