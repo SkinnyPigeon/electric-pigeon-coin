@@ -9,9 +9,9 @@ from blockchain import Blockchain
 from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value, get_status, set_status
 from database.setup import initialise_db
 
-port = 5000
-wallet = Wallet(port)
-blockchain = Blockchain(wallet.public_key, port)
+# port = 5000
+# wallet = Wallet(port)
+# blockchain = Blockchain(wallet.public_key, port, 'blockchain-5000.txt')
 app = Flask(__name__)
 app.config['ERROR_404_HELP'] = False
 CORS(app)
@@ -146,15 +146,23 @@ class GetWallets(Resource):
 # Node management
 
 node_space = api.namespace('nodes', description="Node wallet management and Mining")
+wallet_fields = api.model('The port and filename for saving and loading the blockchain with', {
+    'port': fields.Integer(required=True, description='The port the blockchain will run on', example=5000),
+    'filename': fields.String(required=True, description='The filename underwhich the blockchain will be phsyically stored in the S3 bucket', example='blockchain-5000.txt')
+})
 
 @node_space.route('/new-wallet')
 class NewNodeWallet(Resource):
-    def get(self):
+    @api.expect(wallet_fields)
+    def post(self):
         """Generate new keys for the node. `CAUTION!!! If you aleady have a node you may lose it's balance`"""
+        body = request.get_json()
+        port = body['port']
+        filename = body['filename']
         wallet.create_keys()
         if wallet.save_keys():
             global blockchain
-            blockchain = Blockchain(wallet.public_key, port)
+            blockchain = Blockchain(wallet.public_key, port, filename)
             message = {
                 'public_key': wallet.public_key,
                 'private_key': wallet.private_key,
@@ -170,11 +178,15 @@ class NewNodeWallet(Resource):
 
 @node_space.route('/load-wallet')
 class LoadNodeWallet(Resource):
-    def get(self):
+    @api.expect(wallet_fields)
+    def post(self):
         """Load the keys for the current node"""
         if wallet.load_keys():
+            body = request.get_json()
+            port = body['port']
+            filename = body['filename']
             global blockchain
-            blockchain = Blockchain(wallet.public_key, port)
+            blockchain = Blockchain(wallet.public_key, port, filename)
             message = {
                 'public_key': wallet.public_key,
                 'private_key': wallet.private_key,
@@ -629,4 +641,6 @@ class SetStatus(Resource):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=port)
+    global wallet
+    wallet = Wallet(5000)
+    app.run(host='0.0.0.0', port=5000)

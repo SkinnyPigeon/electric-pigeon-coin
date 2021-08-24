@@ -27,15 +27,16 @@ MINING_REWARD = 100000
 
 
 class Blockchain:
-    def __init__(self, public_key, node_id):
+    def __init__(self, public_key, node_id, filename):
         genesis_block = Block(0, '', [], 100, 0)
         self.chain = [genesis_block]
         self.__open_transactions = []
         self.__peer_nodes = set()
         self.public_key = public_key
         self.node_id = node_id
+        self.filename = filename
         self.resolve_conflicts = False
-        self.load_data()
+        self.load_data(filename)
 
     @property
     def chain(self):
@@ -48,12 +49,12 @@ class Blockchain:
     def get_open_transactions(self):
         return self.__open_transactions[:]
 
-    def load_data(self):
+    def load_data(self, filename):
         session = boto3.Session(
             aws_access_key_id=os.environ['AWSAccessKeyId'],
             aws_secret_access_key=os.environ['AWSSecretKey'],
         )
-        url = 's3://electric-pigeon-coin-blockchain/blockchain-5000.txt'
+        url = f's3://electric-pigeon-coin-blockchain/{filename}'
         try:
             with open(url, 'r', transport_params={'client': session.client('s3')}) as f:
                     file_content = f.read().splitlines()
@@ -73,12 +74,12 @@ class Blockchain:
         except (IOError, IndexError):
             pass
 
-    def save_data(self):
+    def save_data(self, filename):
         session = boto3.Session(
             aws_access_key_id=os.environ['AWSAccessKeyId'],
             aws_secret_access_key=os.environ['AWSSecretKey'],
         )
-        url = 's3://electric-pigeon-coin-blockchain/blockchain-5000.txt'
+        url = f's3://electric-pigeon-coin-blockchain/{filename}'
         with open(url, 'w', transport_params={'client': session.client('s3')}) as f:
                 saveable_chain = [
                     block.__dict__ for block in [
