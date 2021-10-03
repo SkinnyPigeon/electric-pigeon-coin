@@ -6,7 +6,7 @@ import requests
 
 from wallet import Wallet
 from blockchain import Blockchain
-from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value, get_status, set_status
+from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value, get_status, set_status, add_elon, get_elon_counts
 from database.setup import initialise_db
 
 # port = 5000
@@ -643,9 +643,35 @@ class SetStatus(Resource):
 
 elon_space = api.namespace('elon', description="Warning! With great power comes great responsibility")
 
-elon_count_fields = api.model('Get counts of the likes and dislikes by a certain individual', {
-    'table': fields.String(required=True, description='The table to get the counts from', example="elon_up")
-})
+@elon_space.route('/up')
+class ElonUp(Resource):
+    def get(self):
+        """Let's go folks! Elon's just tweeted he's all in 🚀"""
+        message, status_code = add_elon('elon_up')
+        response = jsonify(message)
+        response.staus_code = status_code
+        return response
+
+@elon_space.route('/down')
+class ElonUp(Resource):
+    def get(self):
+        """Uh oh, he's on Joe Rogan and he's just dumped on EPC"""
+        message, status_code = add_elon('elon_down')
+        response = jsonify(message)
+        response.staus_code = status_code
+        return response
+
+
+@elon_space.route('/get_elon_counts')
+class ElonCounts(Resource):
+    def get(self):
+        """Get the likes and dislikes of a certain individual"""
+        message, status_code = get_elon_counts()
+        response = jsonify(message)
+        response.staus_code = status_code
+        return response
+
+
 
 if __name__ == '__main__':
     global wallet

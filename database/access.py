@@ -102,6 +102,25 @@ def add_elon(elon_table):
         engine.dispose()
         return {"message": "Looks like Elon's Twitter is broken, please try again later"}, 500
 
+def get_elon_counts():
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        elon_up = metadata.tables['elon_up']
+        elon_down = metadata.tables['elon_down']
+        elon_up_count = session.query(elon_up).count()
+        elon_down_count = session.query(elon_down).count()
+        engine.dispose()
+        return {"message": "Elon counts retrieved", "elon_up": elon_up_count, "elon_down": elon_down_count}, 200
+    except:
+        engine.dispose()
+        return {"message": "Elon counts unavailable"}, 500
+
 def table_counts(table):
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
