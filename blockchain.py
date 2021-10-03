@@ -74,12 +74,12 @@ class Blockchain:
         except (IOError, IndexError):
             pass
 
-    def save_data(self, filename):
+    def save_data(self):
         session = boto3.Session(
             aws_access_key_id=os.environ['AWSAccessKeyId'],
             aws_secret_access_key=os.environ['AWSSecretKey'],
         )
-        url = f's3://electric-pigeon-coin-blockchain/{filename}'
+        url = f's3://electric-pigeon-coin-blockchain/{self.filename}'
         with open(url, 'w', transport_params={'client': session.client('s3')}) as f:
                 saveable_chain = [
                     block.__dict__ for block in [

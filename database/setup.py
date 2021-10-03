@@ -30,6 +30,14 @@ class BCLikes(Base):
     __tablename__ = 'likes'
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
+class BCElonUp(Base):
+    __tablename__ = 'elon_up'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+class BCElonDown(Base):
+    __tablename__ = 'elon_down'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
 class BCValue(Base):
     __tablename__ = 'value'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -37,7 +45,12 @@ class BCValue(Base):
 
 class BCStatus(Base):
     __tablename__ = "status"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    status = Column(Integer)
+
+class BCStolen(Base):
+    __tablename__ = "stolen"
+    id = Column(Integer, primary_key=True, autoincrement=True)
     status = Column(Integer)
 
 def initialise_db():

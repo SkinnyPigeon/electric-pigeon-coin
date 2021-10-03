@@ -86,6 +86,22 @@ def add_like():
         engine.dispose()
         return {"message": "Like failed to add, please try again later"}, 500
 
+def add_elon(elon_table):
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        table = metadata.tables[elon_table]
+        stmt = (insert(table).values())
+        engine.execute(stmt)
+        engine.dispose()
+        return {"message": "Elon said something, I hope it's ok"}, 200
+    except:
+        engine.dispose()
+        return {"message": "Looks like Elon's Twitter is broken, please try again later"}, 500
+
 def table_counts(table):
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
@@ -102,7 +118,6 @@ def table_counts(table):
     except:
         engine.dispose()
         return {"message": "User count unavailable"}, 500
-
 
 def get_value():
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')

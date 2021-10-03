@@ -639,6 +639,13 @@ class SetStatus(Resource):
         response.status_code = status_code
         return response
 
+# Elon
+
+elon_space = api.namespace('elon', description="Warning! With great power comes great responsibility")
+
+elon_count_fields = api.model('Get counts of the likes and dislikes by a certain individual', {
+    'table': fields.String(required=True, description='The table to get the counts from', example="elon_up")
+})
 
 if __name__ == '__main__':
     global wallet
