@@ -6,11 +6,11 @@ import requests
 
 from wallet import Wallet
 from blockchain import Blockchain
-from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value, get_status, set_status, add_elon, get_elon_counts
+from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value, get_status, set_status, add_elon, get_elon_counts, steal_money, check_exchange_status
 from database.setup import initialise_db
 
-# port = 5000
-# wallet = Wallet(port)
+port = 5000
+wallet = Wallet(port)
 # blockchain = Blockchain(wallet.public_key, port, 'blockchain-5000.txt')
 app = Flask(__name__)
 app.config['ERROR_404_HELP'] = False
@@ -332,6 +332,7 @@ class AllPeerNodes(Resource):
         response = jsonify({'all_nodes': nodes})
         response.status_code = 200
         return response
+
 
 
 # Transactions
@@ -671,9 +672,41 @@ class ElonCounts(Resource):
         response.staus_code = status_code
         return response
 
+steal_space = api.namespace('steal', description="Careful who you trust 🥸")
 
+steal_fields = api.model('The key to taking the money and running', {
+    'status': fields.Integer(required=True, description='Either taking the money or finding your conscience', example=1)
+})
+
+@steal_space.route('/stolen')
+class StealMoney(Resource):
+    @api.expect(steal_fields)
+    def post(self):
+        """Take all the money and run 😋"""
+        body = request.get_json()
+        if not body:
+            response = jsonify({'message': 'No data attached'})
+            response.statud_code = 400
+            return response
+        if 'status' not in body:
+            response = jsonify({'message': 'No status data found'})
+            response.status_code = 400
+            return response
+        message, status_code = steal_money(body['status'])    
+        response = jsonify(message)
+        response.staus_code = status_code
+        return response
+
+@steal_space.route('/check_status')
+class CheckStolenStatus(Resource):
+    def get(self):
+        """Check the status of the exchange, I hear you can't trust anyone nowadays..."""
+        message, status_code = check_exchange_status()
+        response = jsonify(message)
+        response.staus_code = status_code
+        return response
 
 if __name__ == '__main__':
-    global wallet
-    wallet = Wallet(5000)
+    # global wallet
+    # wallet = Wallet(5000)
     app.run(host='0.0.0.0', port=5000)

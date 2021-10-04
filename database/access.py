@@ -207,3 +207,40 @@ def set_status(new_status):
     except:
         engine.dispose()
         return {'message': "Failed to update the value"}, 500
+
+def steal_money(status):
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        value = metadata.tables['stolen']
+        stmt = (update(value).where(value.c.id == 1).values(status = status))
+        engine.execute(stmt)
+        engine.dispose()
+        if status == 0:
+            message = {"message": "The money has been found and it is all ok"}
+        elif status == 1:
+            message = {"message": "The money has been stolen, call the cops 🚓"}
+        return message, 200
+    except:
+        engine.dispose()
+        return {"message": "Failed to update the value"}, 500
+
+def check_exchange_status():
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        value_table = metadata.tables['stolen']
+        stmt = (select(value_table).where(value_table.c.id == 1))
+        result = engine.execute(stmt).fetchone()
+        engine.dispose()
+        value = float(result[1])
+        return {"message": value}, 200
+    except:
+        engine.dispose()
+        return {"message": "Unable to acertain stolen status"}, 500
