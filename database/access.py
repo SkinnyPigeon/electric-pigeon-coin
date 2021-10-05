@@ -86,6 +86,23 @@ def add_like():
         engine.dispose()
         return {"message": "Like failed to add, please try again later"}, 500
 
+def get_likes():
+    engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
+    metadata = MetaData(bind=engine)
+    metadata.reflect(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    try:
+        likes = metadata.tables['likes']
+        count = session.query(likes).count()
+        engine.dispose()
+        return {"message": count}, 200
+    except:
+        engine.dispose()
+        return {"message": "Like counts unavailable"}, 500
+
 def add_elon(elon_table):
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
@@ -183,7 +200,7 @@ def get_status():
         result = engine.execute(stmt).fetchone()
         engine.dispose()
         status = result[1]
-        return {'status': status}, 200
+        return {'message': status}, 200
     except:
         engine.dispose()
         return {'message': 'Failed to fetch the status'}, 500

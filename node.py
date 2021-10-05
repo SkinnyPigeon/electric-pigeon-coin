@@ -7,7 +7,7 @@ import random
 
 from wallet import Wallet
 from blockchain import Blockchain
-from database.access import get_value, save_user_to_db, add_like, table_counts, get_value, set_value, get_status, set_status, add_elon, get_elon_counts, steal_money, check_exchange_status
+from database.access import get_value, save_user_to_db, add_like, get_likes, table_counts, get_value, set_value, get_status, set_status, add_elon, get_elon_counts, steal_money, check_exchange_status
 from database.setup import initialise_db
 
 port = 5000
@@ -584,6 +584,19 @@ class AddLike(Resource):
         message, status = add_like()
         response = jsonify(message)
         response.status_code = status
+        # try:
+        bc_status_message, bc_status_status = get_status()
+        if bc_status_status == 200:
+            if bc_status_message['message'] == 1:
+                likes_message, likes_status = get_likes()
+                if likes_status == 200:
+                    if likes_message['message'] % 10 == 0:
+                        value_message, value_status = get_value()
+                        if value_status == 200:
+                            current_value = value_message['message']
+                            set_value(current_value + 0.1)
+        # except:
+        #     print("Unable to measure the buzz's effect on the value")
         return response
 
 @stats_space.route('/get_counts')
