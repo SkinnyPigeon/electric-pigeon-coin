@@ -565,7 +565,6 @@ class GetBlockchain(Resource):
         response.status_code = 200
         return response
 
-
 # Stats
 
 stats_space = api.namespace('stats', description="Handles the interactions with the blockchain")

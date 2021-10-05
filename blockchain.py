@@ -1,6 +1,5 @@
 from functools import reduce
 import json
-import pickle
 import requests
 import os
 
@@ -19,7 +18,7 @@ from block import Block
 from transaction import Transaction
 from wallet import Wallet
 
-MINING_REWARD = 100000
+MINING_REWARD = 5000
 
 class Blockchain:
     def __init__(self, public_key, node_id, filename):
