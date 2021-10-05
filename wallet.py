@@ -6,7 +6,6 @@ import binascii
 
 from database.access import load_user_from_db, load_node_from_db, save_user_to_db
 
-
 class Wallet:
     def __init__(self, node_id):
         self.private_key = None
@@ -38,17 +37,6 @@ class Wallet:
                 return False
 
     def load_keys(self):
-        # try:
-        #     with open('wallet-{}.txt'.format(self.node_id), mode='r') as f:
-        #         keys = f.readlines()
-        #         public_key = keys[0][:-1]
-        #         private_key = keys[1]
-        #         self.public_key = public_key
-        #         self.private_key = private_key
-        #         return True
-        # except (IOError, IndexError):
-        #     print('Loading wallet failed')
-        #     return False
         try:
             id, public_key, private_key, port = load_node_from_db(self.node_id)
             self.id = id

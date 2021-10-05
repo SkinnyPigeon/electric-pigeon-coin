@@ -2,22 +2,15 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy.sql.sqltypes import NUMERIC
 load_dotenv() 
-# PGUSER=os.getenv("PGUSER")
-# PGPASSWORD=os.getenv("PGPASSWORD")
-# DATABASE_URL = os.getenv('DATABASE_URL')
-# DATABASE=os.getenv('DATABASE')
 
 PGUSER=os.environ["PGUSER"]
 PGPASSWORD=os.environ["PGPASSWORD"]
-# DATABASE=os.environ["DATABASE"]
-# DATABASE_URL=os.environ["DATABASE_URL"]
 
 from sqlalchemy import Column, String, BigInteger, Integer, create_engine, NUMERIC
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
-# engine = create_engine(f'{DATABASE}')
 
 class BCWallet(Base):
     __tablename__ = 'wallets'

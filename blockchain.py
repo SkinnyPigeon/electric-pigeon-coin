@@ -9,13 +9,9 @@ import boto3
 from smart_open import open
 
 load_dotenv() 
-# aws_access_key_id=os.getenv('AWSAccessKeyId')
-# aws_secret_key=os.getenv('AWSSecretKey')
-
 
 aws_access_key_id=os.environ['AWSAccessKeyId']
 aws_secret_key=os.environ['AWSSecretKey']
-
 
 from utility.hash_util import hash_block
 from utility.verification import Verification
@@ -24,7 +20,6 @@ from transaction import Transaction
 from wallet import Wallet
 
 MINING_REWARD = 100000
-
 
 class Blockchain:
     def __init__(self, public_key, node_id, filename):
@@ -126,11 +121,6 @@ class Blockchain:
                 f.write(json.dumps(saveable_tx))
                 f.write('\n')
                 f.write(json.dumps(list(self.__peer_nodes)))
-                # save_data = {
-                #     'chain': self.__chain,
-                #     'ot': self.__open_transactions
-                # }
-                # f.write(pickle.dumps(save_data))
         except IOError:
             print('Saving failed!')
 
@@ -226,7 +216,6 @@ class Blockchain:
         copied_transactions.append(reward_transaction)
         block = Block(len(self.__chain), hashed_block,
                       copied_transactions, proof)
-        # print(f'BLOCKCHAIN BLOCK: {block}')
         self.__chain.append(block)
         self.__open_transactions = []
         self.save_data()

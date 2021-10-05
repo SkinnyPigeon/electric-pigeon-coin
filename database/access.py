@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 from requests.sessions import session
 load_dotenv() 
-# DATABASE = os.getenv('DATABASE')
 
 PGUSER=os.environ["PGUSER"]
 PGPASSWORD=os.environ["PGPASSWORD"]
@@ -13,7 +12,6 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm.session import sessionmaker
 
 def save_user_to_db(public_key, private_key, port):
-    # engine = create_engine(f'{DATABASE}')
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
     metadata.reflect(engine)
@@ -35,7 +33,6 @@ def save_user_to_db(public_key, private_key, port):
         return False
 
 def load_user_from_db(public_key):
-    # engine = create_engine(f'{DATABASE}')
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
     metadata.reflect(engine)
@@ -54,7 +51,6 @@ def load_user_from_db(public_key):
 
 
 def load_node_from_db(port):
-    # engine = create_engine(f'{DATABASE}')
     engine = create_engine(f'postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@localhost:5432/blockchain')
     metadata = MetaData(bind=engine)
     metadata.reflect(engine)

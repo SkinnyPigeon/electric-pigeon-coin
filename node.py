@@ -13,7 +13,6 @@ from manipulation.manipulation import manipulation
 
 port = 5000
 wallet = Wallet(port)
-# blockchain = Blockchain(wallet.public_key, port, 'blockchain-5000.txt')
 app = Flask(__name__)
 app.config['ERROR_404_HELP'] = False
 CORS(app)
@@ -585,19 +584,19 @@ class AddLike(Resource):
         message, status = add_like()
         response = jsonify(message)
         response.status_code = status
-        # try:
-        bc_status_message, bc_status_status = get_status()
-        if bc_status_status == 200:
-            if bc_status_message['message'] == 1:
-                likes_message, likes_status = get_likes()
-                if likes_status == 200:
-                    if likes_message['message'] % 10 == 0:
-                        value_message, value_status = get_value()
-                        if value_status == 200:
-                            current_value = value_message['message']
-                            set_value(current_value + 0.1)
-        # except:
-        #     print("Unable to measure the buzz's effect on the value")
+        try:
+            bc_status_message, bc_status_status = get_status()
+            if bc_status_status == 200:
+                if bc_status_message['message'] == 1:
+                    likes_message, likes_status = get_likes()
+                    if likes_status == 200:
+                        if likes_message['message'] % 10 == 0:
+                            value_message, value_status = get_value()
+                            if value_status == 200:
+                                current_value = value_message['message']
+                                set_value(current_value + 0.1)
+        except:
+            print("Unable to measure the buzz's effect on the value")
         return response
 
 @stats_space.route('/get_counts')
