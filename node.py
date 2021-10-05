@@ -9,6 +9,7 @@ from wallet import Wallet
 from blockchain import Blockchain
 from database.access import get_value, save_user_to_db, add_like, get_likes, table_counts, get_value, set_value, get_status, set_status, add_elon, get_elon_counts, steal_money, check_exchange_status
 from database.setup import initialise_db
+from manipulation.manipulation import manipulation
 
 port = 5000
 wallet = Wallet(port)
@@ -733,6 +734,26 @@ class CheckStolenStatus(Resource):
         response = jsonify(message)
         response.staus_code = status_code
         return response
+
+
+# Manipulation
+manipulate_space = api.namespace('manipulate', description="Basic set of value manipulations")
+@manipulate_space.route('/basic')
+class Manipulate(Resource):
+    def get(self):
+        try:
+            manipulation()
+            message = {"message": "Manipulation finished"}
+            status_code = 200
+            response = jsonify(message)
+            response.status_code = status_code
+            return response
+        except:
+            message = {"message": "Manipulation failed"}
+            status_code = 500
+            response = jsonify(message)
+            response.status_code = status_code
+            return response
 
 if __name__ == '__main__':
     # global wallet
