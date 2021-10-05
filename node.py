@@ -3,6 +3,7 @@ from flask import Flask, json, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_restplus import Api, Resource, fields
 import requests
+import random
 
 from wallet import Wallet
 from blockchain import Blockchain
@@ -648,6 +649,13 @@ elon_space = api.namespace('elon', description="Warning! With great power comes 
 class ElonUp(Resource):
     def get(self):
         """Let's go folks! Elon's just tweeted he's all in 🚀"""
+        value_message, value_status = get_value()
+        current_value = 1
+        if value_status == 200:
+            growth = 1 + random.randint(20, 65) / 100
+            print(growth)
+            current_value = value_message['message']
+            value_set, set_message = set_value(current_value * growth)
         message, status_code = add_elon('elon_up')
         response = jsonify(message)
         response.staus_code = status_code
@@ -657,6 +665,13 @@ class ElonUp(Resource):
 class ElonUp(Resource):
     def get(self):
         """Uh oh, he's on Joe Rogan and he's just dumped on EPC"""
+        value_message, value_status = get_value()
+        current_value = 1
+        if value_status == 200:
+            growth = 1 - random.randint(20, 65) / 100
+            print(growth)
+            current_value = value_message['message']
+            value_set, set_message = set_value(current_value * growth)
         message, status_code = add_elon('elon_down')
         response = jsonify(message)
         response.staus_code = status_code
